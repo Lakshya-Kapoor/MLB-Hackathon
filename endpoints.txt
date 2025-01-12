@@ -1,0 +1,3 @@
+Endpoints
+1. All teams: https://statsapi.mlb.com/api/v1/teams?sportIds=1
+2. Specific teams: https://statsapi.mlb.com/api/v1/teams/{team_id}
