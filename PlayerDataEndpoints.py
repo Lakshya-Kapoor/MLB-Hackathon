@@ -7,8 +7,7 @@ statsBaseUrl = "https://statsapi.mlb.com/api/v1/"
 gumboBaseUrl = "https://statsapi.mlb.com/api/v1.1/"
 defaultParams = {"sportId":"1"}
 
-fan_focused_stats = {
-    # Batting Stats
+battingStats = {
     'avg': 'Batting Average',
     'homeRuns': 'Home Runs',
     'rbi': 'Runs Batted In',
@@ -19,8 +18,9 @@ fan_focused_stats = {
     'stolenBases': 'Stolen Bases',
     'strikeOuts': 'Strikeouts',
     'baseOnBalls': 'Walks',
-    
-    # Pitching Stats
+
+}
+pitchingStats= {
     'era': 'Earned Run Average',
     'wins': 'Wins',
     'losses': 'Losses',
@@ -29,10 +29,11 @@ fan_focused_stats = {
     'whip': 'Walks + Hits per Inning Pitched',
     'inningsPitched': 'Innings Pitched',
     'blownSaves': 'Blown Saves',
-    'qualityStarts': 'Quality Starts',
+    'homeRuns': 'homeruns faced',
     'winPercentage': 'Win Percentage',
-    
-    # Fielding Stats
+
+}
+fieldingStats = {
     'fieldingPercentage': 'Fielding Percentage',
     'putOuts': 'Putouts',
     'assists': 'Assists',
@@ -43,7 +44,9 @@ fan_focused_stats = {
     'sprintSpeed': 'Sprint Speed',
     'rangeFactorPer9Inn': 'Range Factor Per 9 Innings',
     'reactionDistance': 'Reaction Time'
+
 }
+
 
 def getMlbData(url,query):
     response = requests.get(url,params=query)
@@ -53,12 +56,20 @@ def getMlbData(url,query):
 @app.get(baseEndpointPlayers+'stats/')       
 def getPlayerStatsById(playerId:int):
     path = f"people/{playerId}/stats"
-    query = {'stats':'season','season':2024}
+    query = {'stats':'season','season':2024,'group':['hitting','pitching','fielding']}
     query.update(defaultParams)
     data =  getMlbData(statsBaseUrl+path,query)
-    playerStatsAll = data['stats'][0]['splits'][0]['stat']
-    playerTeam = data['stats'][0]['splits'][0]['team']
-    playerStats = {key:value for key,value in playerStatsAll.items() if key in (list(fan_focused_stats  ))}
+    playerStatsAll = {statData['group']['displayName']:statData['splits'][0]['stat'] for statData in data['stats']}
+    playerStats = {}
+    for statType, stats in playerStatsAll.items():
+        if(statType == "pitching"):
+            focusedStat = pitchingStats
+        elif (statType == "fielding"):  
+            focusedStat = fieldingStats
+        else:
+            focusedStat = battingStats
+        playerStats[statType] = {stat:value for stat,value in playerStatsAll[statType].items() if stat in focusedStat}
+    
     return playerStats
 
 # app.get(baseEndpointPlayers+'/info')
