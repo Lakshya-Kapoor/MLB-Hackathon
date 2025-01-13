@@ -19,7 +19,7 @@
 2. Enter the project directory:
 
    ```bash
-   cd MLB-Hackathon
+   cd MLB-Hackathon/backend/
    ```
 
 3. Create a virtual environment:
@@ -38,4 +38,10 @@
 
    ```bash
     pip install -r requirements.txt
+   ```
+
+5. Run the fast api server:
+
+   ```bash
+   uvicorn main:app --reload
    ```
