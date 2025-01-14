@@ -65,18 +65,9 @@ def getMlbData(url,query):
     return response.json()
 
 
-
-# @router.get("/players")
-# def get_players():
-#     return "players"
-
-# @router.get("/players/{player_id}")
-# def get_player(player_id: int):
-#     return f"Player: {player_id}"
-
 # api provide filetered stats for the playerId provided from the mlb website 
 @router.get("/stats")
-def getPlayerStastsById(playerId:int):
+def getPlayerStastsById(playerId:int):      
     path = f"people/{playerId}/stats"
     query = {'stats':'season','season':2024,'group':['hitting','pitching','fielding']}
     query.update(defaultParams)
@@ -93,7 +84,7 @@ def getPlayerStastsById(playerId:int):
         playerStats[statType] = {stat:value for stat,value in playerStatsAll[statType].items() if stat in focusedStat}
     
     return playerStats
-
+#returns the information of player for provided playerId
 @router.get('/info')
 def getPlayerInfoById(playerId:int):
     path = f"people/{playerId}"
@@ -106,6 +97,7 @@ def getPlayerInfoById(playerId:int):
     playerInfo['pitchHand'] = playerInfo['pitchHand']['description']
     return playerInfo
 
+#returns matching playerNames with id for searched player 
 @router.get('/search')
 def getPlayerIdByName(playerName:str):
     path = 'people/search'
@@ -115,6 +107,7 @@ def getPlayerIdByName(playerName:str):
     playerIds = {player['id']:player['fullName'] for player in data['people']}
     return playerIds
 
+#returns the overview of the player for provided playerId
 @router.get('/overview')
 def getPlayerOverviewById(playerId:int):
     path = f"people/{playerId}/stats"
