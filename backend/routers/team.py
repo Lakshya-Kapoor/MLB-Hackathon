@@ -1,13 +1,14 @@
 from fastapi import APIRouter
 from datetime import datetime
-import requests
+import httpx
 
 router = APIRouter()
 
 BASE_URL = "https://statsapi.mlb.com"
 
-def get_data(base_url: str, endpoint: str, params: dict | None = None):
-    response = requests.get(base_url + endpoint, params=params)
+async def get_data(base_url: str, endpoint: str, params: dict | None = None):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(base_url + endpoint, params=params)
 
     if response.status_code != 200:
         return "error"

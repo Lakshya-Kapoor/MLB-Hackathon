@@ -7,6 +7,6 @@ class User(Document):
     username: str
     email: str
     password: str
-    player_ids: List[int] = []
-    team_ids: List[int] = []
+    player_ids: list
+    team_ids: list
 
