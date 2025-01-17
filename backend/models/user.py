@@ -10,3 +10,5 @@ class User(Document):
     player_ids: list
     team_ids: list
 
+    class Settings:
+        name = "users"
