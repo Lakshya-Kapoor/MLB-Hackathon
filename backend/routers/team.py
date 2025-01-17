@@ -17,9 +17,9 @@ async def get_data(base_url: str, endpoint: str, params: dict | None = None):
     return data
 
 # Returns a dictionary of team names and their logos
-def get_team_logos():
+async def get_team_logos():
     url = "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams"
-    response = get_data(url, "")
+    response = await get_data(url, "")
     if response == "error":
         return "error"
     
@@ -34,15 +34,15 @@ def get_team_logos():
     return team_logos
 
 @router.get("/")
-def get_teams():
-    response = get_data(BASE_URL, "/api/v1/teams", {"sportIds": 1})
+async def get_teams():
+    response = await get_data(BASE_URL, "/api/v1/teams", {"sportIds": 1})
     if response == "error":
         return "error"
     return response
 
 @router.get("/{team_id}")
-def get_team(team_id: int):
-    response = get_data(BASE_URL, f"/api/v1/teams/{team_id}", {"sportIds": 1})
+async def get_team(team_id: int):
+    response = await get_data(BASE_URL, f"/api/v1/teams/{team_id}", {"sportIds": 1})
     if response == "error":
         return "error"
     return response
@@ -50,13 +50,13 @@ def get_team(team_id: int):
 
 # Date format: YYYY-MM-DD
 @router.get("/{team_id}/roster")
-def get_team_roster(team_id: int):
-    response = get_data(BASE_URL, f"/api/v1/teams/{team_id}/roster", {"season": datetime.now().year})
+async def get_team_roster(team_id: int):
+    response = await get_data(BASE_URL, f"/api/v1/teams/{team_id}/roster", {"season": datetime.now().year})
     if response == "error":
         return "error"
     return response["roster"]
 
 @router.get("/logo/{team_name}")
-def get_team_logo(team_name: str):
-    team_logos = get_team_logos()
+async def get_team_logo(team_name: str):
+    team_logos = await get_team_logos()
     return team_logos.get(team_name, "Team not found")
