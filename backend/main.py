@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from routers import team, player
+from routers import team, player, auth
 from utils import database
 
 @asynccontextmanager
@@ -17,3 +17,4 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(team.router, prefix="/teams")
 app.include_router(player.router)
+app.include_router(auth.router, prefix="/auth")
