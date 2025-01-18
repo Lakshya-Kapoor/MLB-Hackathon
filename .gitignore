@@ -1,5 +1,6 @@
-myenv
+.myenv
 .pyc
 __pycache__
 Ideas.md
 learning
+.env
