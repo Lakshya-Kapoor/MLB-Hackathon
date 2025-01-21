@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from backend.setUpMlb import statsBaseUrl,defaultParams,currentSeason,getMlbData,client
+from backend.utils.setUpMlb import statsBaseUrl,defaultParams,currentSeason,getMlbData,client
 from enum import Enum
 
 router = APIRouter()
