@@ -61,7 +61,7 @@ export default function AuthLayout() {
     <div className="fixed inset-0 bg-dark5 overflow-hidden">
       {/* Blue blob */}
       <motion.div
-        className="absolute rounded-full bg-blue-500/60 blur-[100px]"
+        className="absolute rounded-full bg-blue-500/50 blur-[100px]"
         animate={blueControls}
         style={{
           width: `${blobRadius * 2}px`,
@@ -71,7 +71,7 @@ export default function AuthLayout() {
 
       {/* Red blob */}
       <motion.div
-        className="absolute rounded-full bg-red-500/60 blur-[100px]"
+        className="absolute rounded-full bg-red-500/50 blur-[100px]"
         animate={redControls}
         style={{
           width: `${blobRadius * 2}px`,
