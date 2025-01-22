@@ -20,6 +20,9 @@ export default {
         red4: "rgb(160, 5, 60)",
         red5: "rgb(150, 5, 60)",
       },
+      fontFamily: {
+        secular: ["Secular", "sans-serif"],
+      },
     },
   },
   plugins: [],

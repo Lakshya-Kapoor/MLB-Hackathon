@@ -11,13 +11,19 @@ export default function NavBar({
   const [notification, setNotification] = useState(false);
 
   return (
-    <header className="border-b-[1px] border-dark1 bg-dark4 fixed top-0 w-full h-20 xl:px-0 px-[30px] flex justify-center text-light1">
+    <header className="select-none border-b-[1px] border-dark1 bg-dark4 fixed top-0 w-full h-20 xl:px-0 px-[30px] flex justify-center text-light1">
       <div className="xl:w-[1200px] w-full flex items-center justify-between">
         <div className="flex items-center gap-16 text-xl font-normal text-light1 text-opacity-80">
           <h1>MLB</h1>
-          <NavLink to="/articles">Articles</NavLink>
-          <NavLink to="/polls">Polls</NavLink>
-          <NavLink to="/follow">Follow</NavLink>
+          <NavLink setSearch={setSearch} to="/articles">
+            Articles
+          </NavLink>
+          <NavLink setSearch={setSearch} to="/polls">
+            Polls
+          </NavLink>
+          <NavLink setSearch={setSearch} to="/follow">
+            Follow
+          </NavLink>
         </div>
         <div className="flex items-center gap-8">
           {/* Search icon */}
@@ -59,22 +65,34 @@ export default function NavBar({
               }`}
             />
           </div>
-          <button className="border border-light1 border-opacity-30 px-6 py-3 rounded-lg hover:border-opacity-100 active:bg-light1 active:text-dark5 transition-colors duration-300">
+          <Link
+            to={"/auth/login"}
+            className="border border-light1 border-opacity-30 px-6 py-3 rounded-lg hover:border-opacity-100 active:bg-light1 active:text-dark5 transition-colors duration-300"
+          >
             Login
-          </button>
+          </Link>
         </div>
       </div>
     </header>
   );
 }
 
-function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
+function NavLink({
+  to,
+  setSearch,
+  children,
+}: {
+  to: string;
+  setSearch: (search: boolean) => void;
+  children: React.ReactNode;
+}) {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   return (
     <Link
       to={to}
+      onClick={() => setSearch(false)}
       className={`relative transition-colors duration-300 group ${
         isActive && "text-light1 font-semibold"
       }`}
