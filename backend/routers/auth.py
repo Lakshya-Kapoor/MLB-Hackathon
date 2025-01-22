@@ -42,6 +42,30 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+def check_token(token: str, secret_key: str):
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+async def refresh(refresh_token: str):
+    payload = check_token(refresh_token, REFRESH_SECRET_KEY)
+    username = payload.get("sub")
+    token_type = payload.get("token_type")
+    
+    if username is None or token_type != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
+    # Create new access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @router.post("/signup")
 async def signup(user: UserBody):
     # Check if user already exists
@@ -50,13 +74,13 @@ async def signup(user: UserBody):
         raise HTTPException(status_code=400, detail="User already exists")
     
     # Hash the password
-    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     # Create new user with hashed password
     new_user = User(
         username=user.username,
         email=user.email,
-        password=hashed_password.decode('utf-8'),
+        password=hashed_password,  # Save the hashed password
         player_ids=[],  # Provide default value
         team_ids=[]     # Provide default value
     )
@@ -93,22 +117,10 @@ async def signin(user: UserBody):
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/refresh")
-async def refresh_token(refresh_token: str):
-    try:
-        payload = jwt.decode(refresh_token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        token_type = payload.get("token_type")
-        
-        if username is None or token_type != "refresh":
-            raise HTTPException(status_code=401, detail="Invalid refresh token")
-        
-        # Create new access token
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={"sub": username}, expires_delta=access_token_expires
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Refresh token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
+async def refresh_route(refresh_token: str):
+    return await refresh(refresh_token)
+
+@router.post("/checkToken")
+async def check_token_route(token: str):
+    payload = check_token(token, SECRET_KEY)
+    return payload
