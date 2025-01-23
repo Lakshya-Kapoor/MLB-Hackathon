@@ -1,14 +1,16 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from routers import team, player, auth, scehdule
+from routers import schedule, team, player, auth, standing
 from utils import database
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
 from jobs.article_generator import generate_article
-from backend.setUpMlb import client
-from backend.setUpMlb import setUpClient
+from setUpMlb import client
+from setUpMlb import setUpClient
+from jobs.team_data import save_team_data
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +19,8 @@ async def lifespan(app: FastAPI):
 
     # Initialize the database connection
     await database.init_db()
+
+    # await save_team_data() 
 
 #     scheduler = AsyncIOScheduler()
 
@@ -35,8 +39,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(team.router, prefix="/teams")
 app.include_router(auth.router, prefix="/auth")
 app.include_router(player.router,prefix="/players")
-app.include_router(scehdule.router,prefix="/schedule")
+app.include_router(schedule.router,prefix="/schedule")
 app.include_router(standing.router,prefix="/standing")

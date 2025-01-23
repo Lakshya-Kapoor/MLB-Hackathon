@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from backend.setUpMlb import statsBaseUrl,defaultParams,currentSeason,getMlbData,client
+from setUpMlb import statsBaseUrl,defaultParams,currentSeason
+from utils.request import get_request
 router = APIRouter()
 from enum import Enum
 
@@ -39,10 +40,10 @@ async def getLeagueData(type:standingType,leagueId:int) -> dict :
     query = {'season':currentSeason,'leagueId':leagueId}
     query.update(defaultParams)
     if(type == standingType.byLeague):
-        data = await getMlbData(statsBaseUrl+f'/standings/byLeague',query=query)
+        data = await get_request(statsBaseUrl, f'/standings/byLeague',query=query)
         return formatStandingDataLeague(data)
     else :
-        data = await getMlbData(statsBaseUrl+f'/standings/byDivision',query=query)
+        data = await get_request(statsBaseUrl, f'/standings/byDivision',query=query)
         return formatStandingDataDivisons(data)
 
 @router.get('/')
