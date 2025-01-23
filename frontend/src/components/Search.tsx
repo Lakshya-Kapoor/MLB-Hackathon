@@ -1,37 +1,54 @@
 import { ChangeEvent, useState } from "react";
+import SearchInput from "./SearchInput";
+import { Link } from "react-router-dom";
 
 export default function Search() {
   const [text, setText] = useState("");
+  const [teams, setTeams] = useState([]);
+
+  async function searchFunction(text: string) {
+    const response = await fetch(`http://localhost:8000/teams?name=${text}`);
+    const data = await response.json();
+    setTeams(data.slice(0, 5));
+  }
+
+  async function searchChange(e: ChangeEvent<HTMLInputElement>) {
+    const text = e.target.value;
+    setText(text);
+    if (text === "") {
+      setTeams([]);
+      return;
+    }
+
+    await searchFunction(text);
+  }
 
   return (
     <div className=" flex flex-col xl:w-[1200px] w-full pt-10">
-      <SearchInput value={text} onChange={(e) => setText(e.target.value)} />
+      <SearchInput value={text} onChange={async (e) => await searchChange(e)} />
+      {text !== "" && (
+        <div className="mt-16 flex flex-col gap-2 select-none">
+          <h3 className="text-light3 mb-3 text-3xl font-semibold">Teams</h3>
+          {teams.map((team: any) => (
+            <TeamSearchResult team={team} key={team.team_id} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-interface SearchProps {
-  value: string;
-  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
-}
-
-function SearchInput({ value, onChange }: SearchProps) {
+function TeamSearchResult({ team }: { team: any }) {
+  const url = `/teams/${team.name}`;
   return (
-    <div className="flex flex-col items-start gap-6 justify-start">
-      <label
-        className="font-secular text-light1 text-6xl hover:cursor-pointer select-none"
-        htmlFor="search"
-      >
-        Search
-      </label>
-      <input
-        id="search"
-        value={value}
-        onChange={onChange}
-        type="text"
-        placeholder="Seach something..."
-        className="bg-transparent border-b-2 border-dark1 w-[400px] outline-none focus:border-light5 focus:border-opacity-65 text-light1 font-medium text-xl px-2 py-1"
-      />
-    </div>
+    <Link
+      to={url}
+      className="flex gap-6 items-center hover:bg-dark1 hover:bg-opacity-50 hover:cursor-pointer py-2 px-3"
+    >
+      <div className="bg-light3 p-2 rounded-full">
+        <img src={team.logo} alt={team.name} className="h-7" />
+      </div>
+      <p className="text-light5 text-lg font-medium">{team.name}</p>
+    </Link>
   );
 }
