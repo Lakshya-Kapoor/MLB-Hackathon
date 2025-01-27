@@ -5,10 +5,7 @@ defaultParams = {"sportId":"1"}
 currentSeason = 2024
 
 
-# global client 
-global client
-client = httpx.AsyncClient()
-# client = httpx.AsyncClient()
+
 def setUpClient():
     global client
     client = httpx.AsyncClient()
