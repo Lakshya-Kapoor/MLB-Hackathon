@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from backend.routers import team, player
-from backend.routers import scehdule
+from routers import team, player
+from routers import scehdule
 from contextlib import asynccontextmanager
-from backend.utils.setUpMlb import client
-from backend.utils.setUpMlb import setUpClient
-from backend.routers import standing
+from utils.setUpMlb import client
+from utils.setUpMlb import setUpClient
+from routers import standing
 @asynccontextmanager
 async def lifespan(app:FastAPI):
     setUpClient()

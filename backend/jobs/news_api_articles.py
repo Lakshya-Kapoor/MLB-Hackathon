@@ -1,4 +1,4 @@
-from backend.utils.config import NEWS_API_KEY,GEMINI_API_KEY
+from utils.config import NEWS_API_KEY,GEMINI_API_KEY
 import httpx 
 from enum import Enum
 import datetime
@@ -178,9 +178,9 @@ async def prompt_to_ai_mlb_articles(url:str):
     return response
 
 
-# async def test():
-#     data = await get_articles_team("Chicago Cubs")
-#     for article in data:
-#         print(article)
+async def test():
+    data = await get_articles_team("Chicago Cubs")
+    for article in data:
+        print(article)
 
-# asyncio.run(test())
+asyncio.run(test())
