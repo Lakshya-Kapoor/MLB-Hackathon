@@ -62,20 +62,21 @@ async def get_articles_newsApi(q:str,option:Option = Option.everything,searchin:
 async def get_articles_players(playerName:str,beg:str|None = None) -> list[Article]:
 
     resultsCount = 1
-    query = f"+{playerName}" # should have playerName 
+    query = f"+{playerName}" 
+    articles = [] 
     originalArticles = await get_articles_newsApi(q=query,searchin=SearchIn.description,pageSize=resultsCount,beg=beg,sortBy=SortBy.popularity)
-    aiResponse = await prompt_to_ai_player_articles(playerName=playerName,url = originalArticles['articles'][0]['url'])
-    articleText  = json.loads(aiResponse.text)
-    article = Article(
-        articleText=articleText,
-        articleUrl=originalArticles['articles'][0]['url'],
-        author= originalArticles['articles'][0]['author'],
-        tagType=TagType.playerTag,
-        tag = playerName
-    )
-    return [article]
-    
-
+    for i in range(min(originalArticles['totalResults'],resultsCount)):
+        aiResponse = await prompt_to_ai_player_articles(url = originalArticles['articles'][i]['url'])
+        articleText  = json.loads(aiResponse.text)
+        article = Article(
+            articleText=articleText,
+            articleUrl=originalArticles['articles'][i]['url'],
+            author= originalArticles['articles'][i]['author'],
+            tagType=TagType.playerTag,
+            tag = playerName
+        )
+        articles.append(article)
+    return articles
 async def get_articles_team(teamName:str,beg:str|None = None) -> list[Article]:
     resultsCount = 3
     articles = []
