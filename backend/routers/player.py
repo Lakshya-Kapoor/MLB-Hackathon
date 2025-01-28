@@ -1,6 +1,7 @@
 from fastapi import APIRouter 
 from setUpMlb import statsBaseUrl,defaultParams,currentSeason
 from utils.request import get_request
+from models.player import Player
 router = APIRouter()
 
 battingStats = {
@@ -53,6 +54,18 @@ focusedPlayerInfo = {
     'batSide':'batting hand',
     'pitchHand':'pitching hand'
 }
+
+@router.get("/")
+async def get_players(name: str | None = None, id: int | None = None, limit: int = 5):
+    query = {}
+
+    if name is not None:
+        query["name"] = {"$regex": name, "$options": "i"}
+    if id is not None:
+        query["player_id"] = id
+    
+    response = await Player.find(query).to_list()
+    return response[:limit]
 
 
 @router.get("/stats")
