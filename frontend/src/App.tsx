@@ -7,8 +7,16 @@ import Articles from "./pages/Articles";
 import Polls from "./pages/Polls";
 import Teams from "./pages/Teams";
 import Players from "./pages/Players";
-import Team from "./pages/Team";
+import TeamLayout from "./layouts/TeamLayout";
 import Player from "./pages/Player";
+import {
+  TeamRoster,
+  TeamArticles,
+  TeamHome,
+  TeamPolls,
+  TeamSchedule,
+  TeamStats,
+} from "./pages/TeamPages";
 
 export default function App() {
   return (
@@ -23,7 +31,14 @@ export default function App() {
           <Route path="polls" element={<Polls />} />
           <Route path="teams" element={<Teams />} />
           <Route path="players" element={<Players />} />
-          <Route path="teams/:id" element={<Team />} />
+          <Route path="teams/:id/" element={<TeamLayout />}>
+            <Route index element={<TeamHome />} />
+            <Route path="roster" element={<TeamRoster />} />
+            <Route path="stats" element={<TeamStats />} />
+            <Route path="schedule" element={<TeamSchedule />} />
+            <Route path="articles" element={<TeamArticles />} />
+            <Route path="polls" element={<TeamPolls />} />
+          </Route>
           <Route path="players/:id" element={<Player />} />
         </Route>
       </Routes>

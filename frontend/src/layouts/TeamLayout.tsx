@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Outlet, useParams } from "react-router-dom";
 import FollowButton from "../components/FollowButton";
 import TeamNav from "../components/TeamNav";
-import { TeamData, TeamSection } from "../utils/types";
+import { TeamData } from "../utils/types";
 
-export default function Team() {
+export default function TeamLayout() {
   const { id } = useParams();
   const [data, setData] = useState<TeamData | null>(null);
   const [following, setFollowing] = useState(false);
-  const [section, setSection] = useState<TeamSection>("Home");
 
   useEffect(() => {
     const url = `http://localhost:8000/teams?id=${id}`;
@@ -24,7 +23,6 @@ export default function Team() {
         console.log(data[0]);
       }
     }
-    setTimeout(() => {}, 1000);
     getTeamData();
 
     return () => {
@@ -53,7 +51,10 @@ export default function Team() {
           onClick={() => setFollowing(!following)}
         />
       </section>
-      <TeamNav section={section} setSection={setSection} />
+      <div className="border-b border-dark1 select-none relative mb-12">
+        <TeamNav />
+      </div>
+      <Outlet />
     </div>
   );
 }

@@ -10,8 +10,6 @@ from datetime import datetime
 from jobs.article_generator import generate_article
 from setUpMlb import client
 from setUpMlb import setUpClient
-from jobs.team_data import save_team_data
-from jobs.player_data import save_player_data
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,9 +18,6 @@ async def lifespan(app: FastAPI):
 
     # Initialize the database connection
     await database.init_db()
-
-    # await save_team_data() 
-    # await save_player_data()
 
 #     scheduler = AsyncIOScheduler()
 

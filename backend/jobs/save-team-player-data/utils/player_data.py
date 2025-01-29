@@ -19,6 +19,7 @@ async def save_player_data():
     players_data = []
     for player in players:
         player_id = player["id"]
+        team_id = player["currentTeam"]["id"]
         name = player["fullName"]
         age = player["currentAge"]
         height = player["height"]
@@ -34,7 +35,8 @@ async def save_player_data():
         image=f'https://securea.mlb.com/mlb/images/players/head_shot/{player_id}.jpg'
         
         players_data.append(Player(
-            player_id = player_id,
+            player_id=player_id,
+            team_id=team_id,
             name=name,
             age=age,
             height=height,

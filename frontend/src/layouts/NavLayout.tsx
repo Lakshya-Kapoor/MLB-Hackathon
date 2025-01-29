@@ -12,10 +12,7 @@ export default function NavLayout() {
       <div className="min-h-screen bg-dark5 pt-20 flex flex-col items-center">
         <NavBar />
         <div className="xl:w-[1200px] w-full pt-10 xl:px-0 px-[30px]">
-          <div className={`${search ? "hidden" : ""}`}>
-            <Outlet />
-          </div>
-          {search && <Search />}
+          {search ? <Search /> : <Outlet />}
         </div>
       </div>
     </SearchContext.Provider>
