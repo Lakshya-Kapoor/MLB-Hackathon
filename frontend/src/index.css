@@ -6,3 +6,8 @@
   font-family: "Secular";
   src: url("./assets/SecularOne-Regular.ttf") format("truetype");
 }
+
+@font-face {
+  font-family: "Anton";
+  src: url("./assets/AntonSC-Regular.ttf") format("truetype");
+}

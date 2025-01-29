@@ -22,6 +22,7 @@ export default {
       },
       fontFamily: {
         secular: ["Secular", "sans-serif"],
+        anton: ["Anton", "sans-serif"],
       },
     },
   },

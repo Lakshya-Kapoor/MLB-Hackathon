@@ -1,15 +1,26 @@
 import { ChangeEvent, useState } from "react";
 import SearchInput from "./SearchInput";
-import { Link } from "react-router-dom";
+import TeamResults from "./TeamResults";
+import PlayerResults from "./PlayerResults";
 
 export default function Search() {
   const [text, setText] = useState("");
   const [teams, setTeams] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [articles, setArticles] = useState([]);
 
   async function searchFunction(text: string) {
-    const response = await fetch(`http://localhost:8000/teams?name=${text}`);
-    const data = await response.json();
-    setTeams(data.slice(0, 5));
+    const urls = [
+      `http://localhost:8000/teams?name=${text}&limit=5`,
+      `http://localhost:8000/players?name=${text}&limit=5`,
+    ];
+
+    const requests = urls.map(async (url) =>
+      fetch(url).then((res) => res.json())
+    );
+    const responses = await Promise.all(requests);
+    setTeams(responses[0]);
+    setPlayers(responses[1]);
   }
 
   async function searchChange(e: ChangeEvent<HTMLInputElement>) {
@@ -17,6 +28,8 @@ export default function Search() {
     setText(text);
     if (text === "") {
       setTeams([]);
+      setPlayers([]);
+      setArticles([]);
       return;
     }
 
@@ -24,31 +37,24 @@ export default function Search() {
   }
 
   return (
-    <div className=" flex flex-col xl:w-[1200px] w-full pt-10">
+    <div>
       <SearchInput value={text} onChange={async (e) => await searchChange(e)} />
-      {text !== "" && (
-        <div className="mt-16 flex flex-col gap-2 select-none">
-          <h3 className="text-light3 mb-3 text-3xl font-semibold">Teams</h3>
-          {teams.map((team: any) => (
-            <TeamSearchResult team={team} key={team.team_id} />
-          ))}
-        </div>
-      )}
+      <div className="mt-12 grid grid-cols-2">
+        {teams.length > 0 && <TeamResults teams={teams} />}
+        {players.length > 0 && <PlayerResults players={players} />}
+        {(teams.length > 0 || players.length > 0) && articles.length > 0 && (
+          <span className="col-span-2 bg-dark1 h-[2px] my-5" />
+        )}
+        {articles.length > 0 && <ArticleResults />}
+      </div>
     </div>
   );
 }
 
-function TeamSearchResult({ team }: { team: any }) {
-  const url = `/teams/${team.name}`;
+function ArticleResults() {
   return (
-    <Link
-      to={url}
-      className="flex gap-6 items-center hover:bg-dark1 hover:bg-opacity-50 hover:cursor-pointer py-2 px-3"
-    >
-      <div className="bg-light3 p-2 rounded-full">
-        <img src={team.logo} alt={team.name} className="h-7" />
-      </div>
-      <p className="text-light5 text-lg font-medium">{team.name}</p>
-    </Link>
+    <div className="col-span-2">
+      <h3 className="text-2xl text-light3 font-semibold">Articles</h3>
+    </div>
   );
 }

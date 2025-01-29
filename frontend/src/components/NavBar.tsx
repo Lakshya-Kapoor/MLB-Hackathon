@@ -1,28 +1,27 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { SearchContext } from "../contexts/SearchContext";
 
-export default function NavBar({
-  search,
-  setSearch,
-}: {
-  search: boolean;
-  setSearch: (search: boolean) => void;
-}) {
+export default function NavBar() {
   const [notification, setNotification] = useState(false);
+  const { search, setSearch } = useContext(SearchContext);
 
   return (
     <header className="select-none border-b-[1px] border-dark1 bg-dark4 fixed top-0 w-full h-20 xl:px-0 px-[30px] flex justify-center text-light1">
       <div className="xl:w-[1200px] w-full flex items-center justify-between">
         <div className="flex items-center gap-16 text-xl font-normal text-light1 text-opacity-80">
           <h1>MLB</h1>
+          <NavLink setSearch={setSearch} to="/teams">
+            Teams
+          </NavLink>
+          <NavLink setSearch={setSearch} to="/players">
+            Players
+          </NavLink>
           <NavLink setSearch={setSearch} to="/articles">
             Articles
           </NavLink>
           <NavLink setSearch={setSearch} to="/polls">
             Polls
-          </NavLink>
-          <NavLink setSearch={setSearch} to="/follow">
-            Follow
           </NavLink>
         </div>
         <div className="flex items-center gap-8">
