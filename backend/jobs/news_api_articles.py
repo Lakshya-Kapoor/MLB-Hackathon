@@ -53,24 +53,25 @@ class WriterModel:
             model_name=self.model_used,
             generation_config=self.genration_config,
             system_instruction=self.model_instruction)
-        self.get_players_teams()
+        # self.get_players_teams()
         
-    def get_players_teams(self):
+    # def get_players_teams(self):
         
-        db_client  = MongoClient(DB_URL)
-        self.players =[ player['name'] for player in db_client['mlb']['players'].find({},projection = {'name':1,"_id":0})]
-        self.teams = [team['name'] for team in db_client['mlb']['teams'].find({},projection = {'name':1,'_id':0})]
-        db_client.close()
-        self.misc_tags = ['transfer','hot take','injury','analysis','League']
+    #     db_client  = MongoClient(DB_URL)
+    #     self.players =[ player['name'] for player in db_client['mlb']['players'].find({},projection = {'name':1,"_id":0})]
+    #     self.teams = [team['name'] for team in db_client['mlb']['teams'].find({},projection = {'name':1,'_id':0})]
+    #     db_client.close()
+    #     self.misc_tags = ['transfer','hot take','injury','analysis','League']
 
     async def generate(self,url:str,feature:str) -> articleTextDesign:
+
         prompt = f"""
         context: you are a article writer who writes about Major League Baseball
-        task: Step1- read the article with the url provided here - -{url},step2-generate an article for the mlb fans to read and engage featuring the {feature}
+        task: Step1- read the article with the url provided here - {url},step2-generate an article for the mlb fans to read and engage featuring the {feature}
         step3 specify the tags for  the article from the given list of tags below
-        Dont dos:  You should never mention the provided article in your article in any form, dont exaggerate the article lines keep it more close to article
-        dos: step 1 divide the main content into paragraphs,step 2 give subheading to these paragraphs step 3 choose only tags from the given list of tags below
-        # tags: player_tags = {self.players} , team_tags = {self.teams} , miscellaneous tags = {self.misc_tags} 
+        Dont dos:  You should never mention the provided article in your article in any form, dont exaggerate the article lines keep it more close to article,
+        dos: step 1 divide the main content into paragraphs,step 2 give subheading to these paragraphs 
+        tags:{self.misc_tags},add tag with player name that is revelant to the article, add tag with team name that is revalnt to the article 
         """
         response = await self.model.generate_content_async(prompt)
         articleText = json.loads(response.text)
@@ -107,6 +108,7 @@ async def get_articles_newsApi(q:str,option:Option = Option.everything,searchin:
         print(response)
         raise Exception("couldnt fetch data from newsapi")
     
+    print(f"fetched  articles from newsApi ")
     return response.json()
 
 async def filter_out_articles(articles:list,returnCount:int,featuring:str) -> list[int]:
@@ -124,6 +126,7 @@ async def filter_out_articles(articles:list,returnCount:int,featuring:str) -> li
     generationConfig = genai.GenerationConfig(response_schema=list[int],temperature=0.0,response_mime_type="application/json")
     response = await model.generate_content_async(prompt,generation_config=generationConfig)
     selectedList = json.loads(response.text)
+    print(f"selected articles {selectedList}")
     return selectedList[:returnCount]
 
 async def get_articles_players(playerName:str,beg:str|None = None,resultsCount:int = 1) -> list[Article]:
@@ -131,19 +134,28 @@ async def get_articles_players(playerName:str,beg:str|None = None,resultsCount:i
     query = f"+{playerName}" 
     articles = [] 
     fetchCount = 10
-    print("fetching articles from newsapi")
-    newsApiResponse = await get_articles_newsApi(q=query,searchin=SearchIn.description,pageSize=fetchCount,beg=beg,sortBy=SortBy.popularity)
-    print("selecting articles")
-    selectedArticles = await filter_out_articles(newsApiResponse['articles'],resultsCount,featuring=playerName)
+    newsApiResponse = await get_articles_newsApi(
+        q=query,
+        searchin=SearchIn.description,
+        pageSize=fetchCount,
+        beg=beg,
+        sortBy=SortBy.popularity)
+    
+    if(newsApiResponse['totalResults'] == 0):
+        return 
+    selectedArticles = await filter_out_articles(
+        newsApiResponse['articles'],
+        min(newsApiResponse['totalResults'],resultsCount),
+        featuring=playerName)
     for i in selectedArticles:
 
-        print("generating articles " + i)
         articleText = await writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=playerName)
         article = Article(
             articleText=articleText,
             articleUrl=newsApiResponse['articles'][i]['url'],
             author= newsApiResponse['articles'][i]['author'],
         )
+        print(f"generated article no {i}")
         articles.append(article)
 
     return articles
@@ -151,8 +163,20 @@ async def get_articles_team(teamName:str,beg:str|None = None,resultsCount:int =3
     articles = []
     query = f"+{teamName}"
     fetchCount = 15
-    newsApiResponse = await get_articles_newsApi(q=query,searchin=SearchIn.description,pageSize=fetchCount,beg=beg,sortBy=SortBy.popularity)
-    selectedArticles = await filter_out_articles(newsApiResponse['articles'],resultsCount,featuring=teamName)
+    newsApiResponse = await get_articles_newsApi(
+        q=query,
+        searchin=SearchIn.description,
+        pageSize=fetchCount,
+        beg=beg,
+        sortBy=SortBy.popularity)
+
+    if(newsApiResponse['totalResults'] == 0):
+        return 
+
+    selectedArticles = await filter_out_articles(
+        newsApiResponse['articles'],
+        min(newsApiResponse['totalResults'],resultsCount),
+        featuring=teamName)
     for i in selectedArticles:
         articleText = await writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=teamName)
         article = Article(
@@ -168,8 +192,22 @@ async def get_articles_mlb(beg:str|None = None,resultsCount:int=10):
     articles = []
     query = f"mlb OR Major League Baseball"
     fetchCount = 20
-    newsApiResponse = await get_articles_newsApi(q=query,searchin=SearchIn.description,pageSize=resultsCount,beg=beg,sortBy=SortBy.popularity)
-    selectedArticles = await filter_out_articles(newsApiResponse['articles'],resultsCount,featuring="Major League Baseball")
+
+    newsApiResponse = await get_articles_newsApi(
+        q=query,
+        searchin=SearchIn.description,
+        pageSize=resultsCount,
+        beg=beg,
+        sortBy=SortBy.popularity)
+
+    if(newsApiResponse['totalResults'] == 0):
+        return 
+
+    selectedArticles = await filter_out_articles(
+        newsApiResponse['articles'],
+        min(newsApiResponse['totalResults'],resultsCount),
+        featuring="Major League Baseball")
+    
     for i in selectedArticles:
         articleText = await writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature="Major League Baseball")
         article = Article(
@@ -182,14 +220,16 @@ async def get_articles_mlb(beg:str|None = None,resultsCount:int=10):
     return articles
 
 intialize_module()
-async def test():
-    data = await get_articles_players("Juan Soto")
-    for article in data:
-        print(article)
-    global writerModel
-    del writerModel
+# async def test():
+#     data = await get_articles_players("Matt Andriese")
+#     for article in data:
+#         print(article)
+#     global writerModel
+#     del writerModel
 
 
-asyncio.run(test())
+# asyncio.run(test())
 
-## get articles from newsapi and prompt gemini to filter out unique and top articles and then regenerate thoose articles 
+# giving high result count exhausts gemini per minute requests which is 15 
+# giving wrong names make newsApi to fetch 0 results 
+# 
