@@ -26,3 +26,5 @@ async def getMlbData(url,query):
         print(response)
         raise Exception("Error couldnt fetch data from the source  endpoint ")
     return response.json()
+
+setUpClient()

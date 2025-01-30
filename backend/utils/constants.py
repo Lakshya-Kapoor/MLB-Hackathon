@@ -1,0 +1,1 @@
+STATS_BASE_URL = "https://statsapi.mlb.com"

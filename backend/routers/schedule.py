@@ -104,7 +104,7 @@ async def getSchedule(teamId:int|None=None,gameState:GameState|None = None) -> l
     
     query.update(defaultParams)
     data = await getMlbData(statsBaseUrl+path, query)
-    gameTypes = await  getGameTypes()
+    gameTypes = await getGameTypes()
     fullSchedule = formatScheduleData(data,gameTypes)
     
     if(gameState == None):

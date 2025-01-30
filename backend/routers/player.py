@@ -1,5 +1,6 @@
 from fastapi import APIRouter 
 from utils.setUpMlb import statsBaseUrl,defaultParams,currentSeason,getMlbData,client
+from models.player import Player
 router = APIRouter()
 
 battingStats = {
@@ -53,6 +54,18 @@ focusedPlayerInfo = {
     'pitchHand':'pitching hand'
 }
 
+@router.get("/")
+async def get_players(name: str | None = None, id: int | None = None, limit: int = 5):
+    query = {}
+
+    if name is not None:
+        query["name"] = {"$regex": name, "$options": "i"}
+    if id is not None:
+        query["player_id"] = id
+    
+    response = await Player.find(query).to_list()
+    return response[:limit]
+
 
 @router.get("/stats")
 async def getPlayerStastsById(playerId:int):      
@@ -61,22 +74,20 @@ async def getPlayerStastsById(playerId:int):
     filtered stats are divided into hitting, pitching and fielding
     """
     path = f"people/{playerId}/stats"
-    query = {'stats':'season','season':currentSeason,'group':['hitting','pitching','fielding']}
+    query = {'stats': 'season', 'season': currentSeason, 'group': ['hitting', 'pitching', 'fielding']}
     query.update(defaultParams)
-    data = await getMlbData(statsBaseUrl+path,query)
-    playerStatsAll = {statData['group']['displayName']:statData['splits'][0]['stat'] for statData in data['stats']}
+    data = await getMlbData(statsBaseUrl+ path, query)
+    playerStatsAll = {statData['group']['displayName']: statData['splits'][0]['stat'] for statData in data['stats']}
     playerStats = {}
     for statType, stats in playerStatsAll.items():
-        if(statType == "pitching"):
+        if statType == "pitching":
             focusedStat = pitchingStats
-        elif (statType == "fielding"):  
+        elif statType == "fielding":
             focusedStat = fieldingStats
         else:
             focusedStat = battingStats
-        playerStats[statType] = {stat:value for stat,value in playerStatsAll[statType].items() if stat in focusedStat}
-    
+        playerStats[statType] = {stat: value for stat, value in playerStatsAll[statType].items() if stat in focusedStat}
     return playerStats
-
 
 @router.get('/info')
 async def getPlayerInfoById(playerId:int):
@@ -87,9 +98,9 @@ async def getPlayerInfoById(playerId:int):
     path = f"people/{playerId}"
     query = {}
     query.update(defaultParams)
-    data = await getMlbData(statsBaseUrl+path,query)
-    playerInfo = {infoType:info for infoType,info in data['people'][0].items() if infoType in focusedPlayerInfo}
-    playerInfo['primaryPosition'] = playerInfo['primaryPosition']['name']  +'-' + playerInfo['primaryPosition']['type']
+    data = await getMlbData(statsBaseUrl+ path, query)
+    playerInfo = {infoType: info for infoType, info in data['people'][0].items() if infoType in focusedPlayerInfo}
+    playerInfo['primaryPosition'] = playerInfo['primaryPosition']['name'] + '-' + playerInfo['primaryPosition']['type']
     playerInfo['batSide'] = playerInfo['batSide']['description']
     playerInfo['pitchHand'] = playerInfo['pitchHand']['description']
     return playerInfo
@@ -101,14 +112,12 @@ async def getPlayerIdByName(playerName:str):
     This function searches for players using the given player name and returns
     a dictionary mapping player IDs to their full names from the MLB website.
     """
-
     path = 'people/search'
-    query = {'seasons':[currentSeason],'names':[playerName]}
+    query = {'seasons': [currentSeason], 'names': [playerName]}
     query.update(defaultParams)
-    data = await  getMlbData(statsBaseUrl+path,query)
-    playerIds = {player['id']:player['fullName'] for player in data['people']}
+    data = await getMlbData(statsBaseUrl+ path, query)
+    playerIds = {player['id']: player['fullName'] for player in data['people']}
     return playerIds
-
 
 @router.get('/overview')
 async def getPlayerOverviewById(playerId:int):
@@ -118,10 +127,10 @@ async def getPlayerOverviewById(playerId:int):
     'team', 'league', and 'player'. Each value is a dictionary containing the name and id of the respective object.
     """
     path = f"people/{playerId}/stats"
-    query = {'stats':'season','season':currentSeason}
+    query = {'stats': 'season', 'season': currentSeason}
     query.update(defaultParams)
-    data = await  getMlbData(statsBaseUrl+path,query)
-    team = {infoType:info for infoType,info in data['stats'][0]['splits'][0]['team'].items() if infoType in {'name','id'}}
-    league = {infoType:info for infoType,info in data['stats'][0]['splits'][0]['league'].items() if infoType in {'name','id'}}
-    player = {infoType:info for infoType,info in data['stats'][0]['splits'][0]['player'].items() if infoType in {'fullName','id'}}
-    return {'team':team,'league':league,'player':player}
+    data = await getMlbData(statsBaseUrl+ path, query)
+    team = {infoType: info for infoType, info in data['stats'][0]['splits'][0]['team'].items() if infoType in {'name', 'id'}}
+    league = {infoType: info for infoType, info in data['stats'][0]['splits'][0]['league'].items() if infoType in {'name', 'id'}}
+    player = {infoType: info for infoType, info in data['stats'][0]['splits'][0]['player'].items() if infoType in {'fullName', 'id'}}
+    return {'team': team, 'league': league, 'player': player}
