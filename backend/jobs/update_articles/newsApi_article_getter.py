@@ -1,4 +1,5 @@
 from utils.config import NEWS_API_KEY,GEMINI_API_KEY,DB_URL
+from jobs.update_articles.gemini_req_wrapper import gemini_api_call
 from httpx import AsyncClient 
 from enum import Enum
 from models.article import Article
@@ -6,7 +7,6 @@ import google.generativeai as genai
 import typing_extensions as typing 
 import json
 import dateutil.parser
-from gemini_req_wrapper import gemini_api_call
 class SearchIn(Enum):
     title = "title"
     description = "description"
@@ -58,7 +58,7 @@ class WriterModel:
         dos: step 1 divide the main content into paragraphs,step 2 give subheading to these paragraphs 
         tags:{self.misc_tags},add tag with player name that is revelant to the article, add tag with team name that is revalnt to the article 
         """
-        response = gemini_api_call(model=self.model,prompt=prompt)
+        response = await gemini_api_call(model=self.model,prompt=prompt)
         articleText = json.loads(response.text)
         return articleText
 

@@ -9,7 +9,7 @@ from models.team import Team
 from jobs.update_articles.gemini_req_wrapper  import GeminiDayLimit,gemini_api_calls
 async def test():
     articleGetter  = NewsApiArticleGetter() 
-    data = await articleGetter.get_articles_mlb()
+    data = await articleGetter.get_articles_players("Juan Soto")
     for article in data:
         print(article)
     await articleGetter.close()
@@ -18,7 +18,7 @@ players_article_stored = 0
 teams__article_stored = 0
 mlb_article_stored  = 0
 articleGetter = NewsApiArticleGetter()
-last_run_date = datetime() # some date in date time format 
+# last_run_date = datetime() # some date in date time format 
 
 def sleep_for_day():
     time.sleep(60*60*24)
