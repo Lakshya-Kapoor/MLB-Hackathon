@@ -2,47 +2,9 @@ from fastapi import APIRouter
 from setUpMlb import statsBaseUrl,defaultParams,currentSeason
 from utils.request import get_request
 from models.player import Player
+from utils.constants import battingStats, fieldingStats, pitchingStats
 router = APIRouter()
 
-battingStats = {
-    'avg': 'Batting Average',
-    'homeRuns': 'Home Runs',
-    'rbi': 'Runs Batted In',
-    'hits': 'Hits',
-    'obp': 'On-Base Percentage',
-    'slg': 'Slugging Percentage',
-    'ops': 'On-Base Plus Slugging',
-    'stolenBases': 'Stolen Bases',
-    'strikeOuts': 'Strikeouts',
-    'baseOnBalls': 'Walks',
-
-}
-pitchingStats= {
-    'era': 'Earned Run Average',
-    'wins': 'Wins',
-    'losses': 'Losses',
-    'saves': 'Saves',
-    'strikeOuts': 'Strikeouts',
-    'whip': 'Walks + Hits per Inning Pitched',
-    'inningsPitched': 'Innings Pitched',
-    'blownSaves': 'Blown Saves',
-    'homeRuns': 'homeruns faced',
-    'winPercentage': 'Win Percentage',
-
-}
-fieldingStats = {
-    'fieldingPercentage': 'Fielding Percentage',
-    'putOuts': 'Putouts',
-    'assists': 'Assists',
-    'errors': 'Errors',
-    'doublePlays': 'Double Plays',
-    'outsAboveAverage': 'Outs Above Average',
-    'armStrength': 'Arm Strength',
-    'sprintSpeed': 'Sprint Speed',
-    'rangeFactorPer9Inn': 'Range Factor Per 9 Innings',
-    'reactionDistance': 'Reaction Time'
-
-}
 focusedPlayerInfo = {
     'fullName':'nickname for the player' ,
     'primaryNumber':'jersey number',
@@ -68,13 +30,13 @@ async def get_players(name: str | None = None, id: int | None = None, limit: int
     return response[:limit]
 
 
-@router.get("/stats")
-async def getPlayerStastsById(playerId:int):      
+@router.get("/{player_id}/stats")
+async def getPlayerStastsById(player_id: int):      
     """
-    endpoint returns the filtered stats for the playerId provided from the mlb website 
+    endpoint returns the filtered stats for the player_id provided from the mlb website 
     filtered stats are divided into hitting, pitching and fielding
     """
-    path = f"people/{playerId}/stats"
+    path = f"people/{player_id}/stats"
     query = {'stats': 'season', 'season': currentSeason, 'group': ['hitting', 'pitching', 'fielding']}
     query.update(defaultParams)
     data = await get_request(statsBaseUrl, path, query)
