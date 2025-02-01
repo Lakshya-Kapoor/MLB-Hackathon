@@ -6,7 +6,7 @@ import google.generativeai as genai
 import typing_extensions as typing 
 import json
 import dateutil.parser
-
+import time
 class SearchIn(Enum):
     title = "title"
     description = "description"
@@ -43,9 +43,17 @@ class WriterModel:
             generation_config=self.genration_config,
             system_instruction=self.model_instruction)
         self.misc_tags = ['transfer','hot take','injury','analysis','League']
+        self.req_made_count = 0
+        self.req_day_limit = 1500
+        self.req_min_limit = 15
 
+    def wait_to_make_req(self):
+        if(self.req_made_count % 15 == 0):
+            time.sleep(60/self.req_min_limit)
+        self.req_made_count+=1
+    
     async def generate(self,url:str,feature:str) -> ArticleResponseSchema:
-
+        
         prompt = f"""
         context: you are a article writer who writes about Major League Baseball
         task: Step1- read the article with the url provided here - {url},step2-generate an article for the mlb fans to read and engage featuring the {feature}
@@ -54,6 +62,7 @@ class WriterModel:
         dos: step 1 divide the main content into paragraphs,step 2 give subheading to these paragraphs 
         tags:{self.misc_tags},add tag with player name that is revelant to the article, add tag with team name that is revalnt to the article 
         """
+        self.wait_to_make_req()
         response = await self.model.generate_content_async(prompt)
         articleText = json.loads(response.text)
         return articleText
@@ -64,7 +73,9 @@ class NewsApiArticleGetter:
         self.model_to_use = "gemini-1.5-flash"
         genai.configure(api_key=GEMINI_API_KEY)
         self.writerModel = WriterModel(self.model_to_use)
-   
+        self.newsApi_day_limit = 100
+        self.newsApi_req_made = 0
+
     async def get_articles_newsApi(self,q:str,option:Option = Option.everything,searchin:SearchIn|None = None,beg:str|None = None,sortBy:SortBy|None=None,pageSize:int|None = None,page:int|None = None):
     
         newsApiUrl = f"https://newsapi.org/v2/{option.value}"
@@ -77,13 +88,13 @@ class NewsApiArticleGetter:
         if(pageSize) : params['pageSize'] = pageSize
         if(page) : params['page'] = page
 
-        response = await self.client.get(newsApiUrl,params=params)
 
+        response = await self.client.get(newsApiUrl,params=params)
+        self.newsApi_req_made+=1
         if(response.status_code != 200):
             print(response)
             raise Exception("couldnt fetch data from newsapi")
 
-        print(f"fetched  articles from newsApi ")
         return response.json()
     async def filter_out_articles(self,articles:list,returnCount:int,featuring:str) -> list[int]:
     
@@ -98,22 +109,26 @@ class NewsApiArticleGetter:
         criteria: 1.  article should have unique topic among other articles 2. article should be more revelant and interesting than others 
         articles:{articleString}"""
         generationConfig = genai.GenerationConfig(response_schema=list[int],temperature=0.0,response_mime_type="application/json")
+        self.writerModel.wait_to_make_req()
         response = await model.generate_content_async(prompt,generation_config=generationConfig)
         selectedList = json.loads(response.text)
-        print(f"selected articles {selectedList}")
         return selectedList[:returnCount]
     
     def format_into_article(self,articleText:ArticleResponseSchema,newsApiArticle)-> Article:
-        return Article(
-                tags= articleText['tags'],
-                title= articleText['title'],
-                description=articleText['description'],
-                catchyPhrase= articleText['catchyPhrase'],
-                content=articleText['content'],
-                url =newsApiArticle['url'],
-                author= newsApiArticle['author'],
-                publishedDate= dateutil.parser.parse(newsApiArticle['publishedAt'])
-        )
+        try:
+            return Article(
+                    tags= articleText['tags'],
+                    title= articleText['title'],
+                    description=articleText['description'],
+                    catchyPhrase= articleText['catchyPhrase'],
+                    content=articleText['content'],
+                    url =newsApiArticle['url'],
+                    author= newsApiArticle['author'],
+                    publishedDate= dateutil.parser.parse(newsApiArticle['publishedAt'])
+            )
+        except Exception:
+            print(articleText)
+
     async def get_articles_players(self,playerName:str,beg:str|None = None,resultsCount:int = 1) -> list[Article]:
 
         query = f"+{playerName}" 
@@ -139,7 +154,6 @@ class NewsApiArticleGetter:
             articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=playerName)
             article = self.format_into_article(articleText,newsApiResponse['articles'][i])
             articles.append(article)
-            print(f"generated article no {i}")
 
         return articles
     async def get_articles_mlb(self,beg:str|None = None,resultsCount:int=10):
@@ -164,7 +178,7 @@ class NewsApiArticleGetter:
 
         for i in selectedArticles:
             articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature="Major League Baseball")
-            article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['article'][i])
+            article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
             articles.append(article)
 
         return articles
