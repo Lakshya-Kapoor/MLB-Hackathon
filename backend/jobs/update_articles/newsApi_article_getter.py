@@ -6,7 +6,7 @@ import google.generativeai as genai
 import typing_extensions as typing 
 import json
 import dateutil.parser
-import time
+from gemini_req_wrapper import gemini_api_call
 class SearchIn(Enum):
     title = "title"
     description = "description"
@@ -27,6 +27,10 @@ class ArticleResponseSchema(typing.TypedDict):
     description:str
     content:str
     tags:list[str]
+class NewsApiDayLimit(Exception):
+    def __init__(self):
+        super().__init__("NewsApi daily limit reached")
+
 class WriterModel:
     def __init__(self,model_to_use):
         self.model_instruction = "mimick the tone of a article writer for fans expressing him/her  opinion and facts"
@@ -43,14 +47,6 @@ class WriterModel:
             generation_config=self.genration_config,
             system_instruction=self.model_instruction)
         self.misc_tags = ['transfer','hot take','injury','analysis','League']
-        self.req_made_count = 0
-        self.req_day_limit = 1500
-        self.req_min_limit = 15
-
-    def wait_to_make_req(self):
-        if(self.req_made_count % 15 == 0):
-            time.sleep(60/self.req_min_limit)
-        self.req_made_count+=1
     
     async def generate(self,url:str,feature:str) -> ArticleResponseSchema:
         
@@ -62,8 +58,7 @@ class WriterModel:
         dos: step 1 divide the main content into paragraphs,step 2 give subheading to these paragraphs 
         tags:{self.misc_tags},add tag with player name that is revelant to the article, add tag with team name that is revalnt to the article 
         """
-        self.wait_to_make_req()
-        response = await self.model.generate_content_async(prompt)
+        response = gemini_api_call(model=self.model,prompt=prompt)
         articleText = json.loads(response.text)
         return articleText
 
@@ -74,12 +69,14 @@ class NewsApiArticleGetter:
         genai.configure(api_key=GEMINI_API_KEY)
         self.writerModel = WriterModel(self.model_to_use)
         self.newsApi_day_limit = 100
-        self.newsApi_req_made = 0
+        self.newsApi_api_calls = 0
 
     async def get_articles_newsApi(self,q:str,option:Option = Option.everything,searchin:SearchIn|None = None,beg:str|None = None,sortBy:SortBy|None=None,pageSize:int|None = None,page:int|None = None):
-    
+        
+        if(self.newsApi_api_calls > self.newsApi_day_limit):
+            raise NewsApiDayLimit
+        
         newsApiUrl = f"https://newsapi.org/v2/{option.value}"
-
         # language selected in english for the articles 
         params = {'q':q,'apiKey':NEWS_API_KEY,'language':"en"}
         if(searchin) : params['searchin'] = searchin.value
@@ -90,7 +87,8 @@ class NewsApiArticleGetter:
 
 
         response = await self.client.get(newsApiUrl,params=params)
-        self.newsApi_req_made+=1
+        self.newsApi_api_calls+=1
+        
         if(response.status_code != 200):
             print(response)
             raise Exception("couldnt fetch data from newsapi")
@@ -99,18 +97,18 @@ class NewsApiArticleGetter:
     async def filter_out_articles(self,articles:list,returnCount:int,featuring:str) -> list[int]:
     
         articleString = {i:{"description":article['description'],"url":article["url"]} for i,article in enumerate(articles)}
+
         systemInstruction = "be a article selector "
-        model = genai.GenerativeModel(model_name= self.model_to_use,system_instruction=systemInstruction)
-        # prompted ai to only read descriptions giving the ai url and description
+        generationConfig = genai.GenerationConfig(response_schema=list[int],temperature=0.0,response_mime_type="application/json")
+        model = genai.GenerativeModel(model_name= self.model_to_use,system_instruction=systemInstruction,generation_config=generationConfig)
         prompt = f"""
         context: you are provided with some articles featuring {featuring} and you need to select {returnCount} number of articles based on the criteria
         Task: step 1 read the criteria step 2 read the articles(featuring {featuring}) description  provided below step 3 based on the criteria filter out {returnCount} number of articles 
         step4  output the list of serial numbers of selected articles
         criteria: 1.  article should have unique topic among other articles 2. article should be more revelant and interesting than others 
         articles:{articleString}"""
-        generationConfig = genai.GenerationConfig(response_schema=list[int],temperature=0.0,response_mime_type="application/json")
-        self.writerModel.wait_to_make_req()
-        response = await model.generate_content_async(prompt,generation_config=generationConfig)
+
+        response = await gemini_api_call(model=model,prompt=prompt)
         selectedList = json.loads(response.text)
         return selectedList[:returnCount]
     
@@ -210,6 +208,3 @@ class NewsApiArticleGetter:
     async def  close(self):
         await self.client.aclose()
     
-    # async def __del__(self):
-    #     await client.aclose()
-    #     # automatically deletes writerModel
