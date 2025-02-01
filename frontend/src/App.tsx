@@ -7,16 +7,13 @@ import Articles from "./pages/Articles";
 import Polls from "./pages/Polls";
 import Teams from "./pages/Teams";
 import Players from "./pages/Players";
-import TeamLayout from "./layouts/TeamLayout";
-import Player from "./pages/Player";
-import {
-  TeamRoster,
-  TeamArticles,
-  TeamHome,
-  TeamPolls,
-  TeamSchedule,
-  TeamStats,
-} from "./pages/TeamPages";
+import { Stats } from "./pages/Stats";
+import { Roster } from "./pages/Roster";
+import ProfileLayout from "./layouts/ProfileLayout";
+import ProfileHome from "./pages/ProfileHome";
+import ProfileArticles from "./pages/ProfileArticles";
+import ProfilePolls from "./pages/ProfilePolls";
+import ProfileSchedule from "./pages/ProfileSchedule";
 
 export default function App() {
   return (
@@ -31,15 +28,27 @@ export default function App() {
           <Route path="polls" element={<Polls />} />
           <Route path="teams" element={<Teams />} />
           <Route path="players" element={<Players />} />
-          <Route path="teams/:id/" element={<TeamLayout />}>
-            <Route index element={<TeamHome />} />
-            <Route path="roster" element={<TeamRoster />} />
-            <Route path="stats" element={<TeamStats />} />
-            <Route path="schedule" element={<TeamSchedule />} />
-            <Route path="articles" element={<TeamArticles />} />
-            <Route path="polls" element={<TeamPolls />} />
+          <Route
+            path="teams/:id/"
+            element={<ProfileLayout profileType="teams" />}
+          >
+            <Route index element={<ProfileHome />} />
+            <Route path="roster" element={<Roster />} />
+            <Route path="stats" element={<Stats />} />
+            <Route path="schedule" element={<ProfileSchedule />} />
+            <Route path="articles" element={<ProfileArticles />} />
+            <Route path="polls" element={<ProfilePolls />} />
           </Route>
-          <Route path="players/:id" element={<Player />} />
+          <Route
+            path="players/:id"
+            element={<ProfileLayout profileType="players" />}
+          >
+            <Route index element={<ProfileHome />} />
+            <Route path="stats" element={<Stats />} />
+            <Route path="schedule" element={<ProfileSchedule />} />
+            <Route path="articles" element={<ProfileArticles />} />
+            <Route path="polls" element={<ProfilePolls />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

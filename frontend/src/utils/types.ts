@@ -30,3 +30,37 @@ export type TeamSection =
   | "Schedule"
   | "Articles"
   | "Polls";
+
+export interface HittingStats {
+  homeRuns: number;
+  strikeOuts: number;
+  baseOnBalls: number;
+  hits: number;
+  avg: string;
+  obp: string;
+  slg: string;
+  ops: string;
+  stolenBases: number;
+  rbi: number;
+}
+
+export interface PitchingStats {
+  homeRuns: number;
+  strikeOuts: number;
+  era: string;
+  inningsPitched: string;
+  wins: number;
+  losses: number;
+  saves: number;
+  blownSaves: number;
+  whip: string;
+  winPercentage: string;
+}
+
+export interface FieldingStats {
+  assists: number;
+  putOuts: number;
+  errors: number;
+  rangeFactorPer9Inn: string;
+  doublePlays: number;
+}

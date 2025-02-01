@@ -1,32 +1,23 @@
 import { Link, useLocation, useParams } from "react-router-dom";
 import { TeamSection } from "../utils/types";
 import {
-  Home,
-  PersonStanding,
   BarChart,
   Calendar,
-  FileText,
   CopyCheck,
+  FileText,
+  Home,
+  PersonStanding,
 } from "lucide-react";
 
-export default function TeamNav() {
-  return (
-    <nav className="-mb-px flex space-x-8">
-      <TeamNavButton name="Home" />
-      <TeamNavButton name="Roster" />
-      <TeamNavButton name="Stats" />
-      <TeamNavButton name="Schedule" />
-      <TeamNavButton name="Articles" />
-      <TeamNavButton name="Polls" />
-    </nav>
-  );
-}
-
-function TeamNavButton({ name }: { name: TeamSection }) {
+export default function SubNavButton({ name }: { name: TeamSection }) {
   const { id } = useParams();
   const location = useLocation();
 
   let url = `/teams/${id}`;
+
+  if (location.pathname.includes("players")) {
+    url = url.replace("teams", "players");
+  }
 
   if (name !== "Home") {
     url += `/${name.toLowerCase()}`;
@@ -50,7 +41,7 @@ function TeamNavButton({ name }: { name: TeamSection }) {
           relative pb-4 px-1 font-medium text-lg flex items-center
           transition-all duration-300 ease-in-out ${
             isActive
-              ? "text-blue-600/100 hover:text-opacity-60"
+              ? "text-blue-400 hover:text-blue-300"
               : "text-light5 text-opacity-60 hover:text-opacity-100"
           }
         `}
@@ -71,7 +62,7 @@ function TeamNavButton({ name }: { name: TeamSection }) {
           transform transition-all duration-300 ease-in-out
           ${
             isActive
-              ? "bg-blue-600 scale-x-100"
+              ? "bg-blue-400 hover:bg-blue-300 scale-x-100"
               : "bg-transparent scale-x-0 hover:scale-x-100 hover:bg-gray-300"
           }
         `}
