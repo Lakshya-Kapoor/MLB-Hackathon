@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from backend.setUpMlb import statsBaseUrl,defaultParams,currentSeason,getMlbData,client
+from setUpMlb import statsBaseUrl,defaultParams,currentSeason,getMlbData
+from utils.request import get_request
 from enum import Enum
 
 router = APIRouter()
@@ -32,7 +33,7 @@ class GameState(Enum):
 async def getGameTypes() -> dict:
     """ get game Types from Mlb api  """
     path = 'gameTypes'
-    response = await getMlbData(statsBaseUrl+path,{})
+    response = await get_request(statsBaseUrl, path,{})
     data = {gameType['id']:gameType['description'] for gameType in response}
     return data 
 
@@ -103,8 +104,8 @@ async def getSchedule(teamId:int|None=None,gameState:GameState|None = None) -> l
         query.update({'teamId':teamId})
     
     query.update(defaultParams)
-    data = await getMlbData(statsBaseUrl+path, query)
-    gameTypes = await  getGameTypes()
+    data = await get_request(statsBaseUrl, path, query)
+    gameTypes = await getGameTypes()
     fullSchedule = formatScheduleData(data,gameTypes)
     
     if(gameState == None):

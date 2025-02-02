@@ -1,61 +1,78 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from models.team import Team
+from models.player import Player
+from models.user import User
+from utils.request import get_request
 from datetime import datetime
-import requests
+from utils.constants import STATS_BASE_URL, battingStats, fieldingStats, pitchingStats
+from utils.middleware import get_current_user
+import asyncio
 
 router = APIRouter()
 
-BASE_URL = "https://statsapi.mlb.com"
-
-def get_data(base_url: str, endpoint: str, params: dict | None = None):
-    response = requests.get(base_url + endpoint, params=params)
-
-    if response.status_code != 200:
-        return "error"
-    
-    data = response.json()
-    return data
-
-# Returns a dictionary of team names and their logos
-def get_team_logos():
-    url = "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams"
-    response = get_data(url, "")
-    if response == "error":
-        return "error"
-    
-    team_logos = {}
-    for league in response.get("sports", [])[0].get("leagues", []):
-        for team in league.get("teams", []):
-            team_info = team.get("team", {})
-            display_name = team_info.get("displayName")
-            logos = team_info.get("logos", [])
-            if logos:
-                team_logos[display_name] = logos[0].get("href")
-    return team_logos
-
 @router.get("/")
-def get_teams():
-    response = get_data(BASE_URL, "/api/v1/teams", {"sportIds": 1})
-    if response == "error":
-        return "error"
-    return response
+async def get_teams(name: str | None = None, id: int | None = None, limit: int = 5):
+    query = {}
 
-@router.get("/{team_id}")
-def get_team(team_id: int):
-    response = get_data(BASE_URL, f"/api/v1/teams/{team_id}", {"sportIds": 1})
-    if response == "error":
-        return "error"
-    return response
-
+    if name is not None:
+        query["name"] = {"$regex": name, "$options": "i"}
+    if id is not None:
+        query["team_id"] = id
+    
+    teams = await Team.find(query).to_list()
+    return teams[:limit]    
 
 # Date format: YYYY-MM-DD
 @router.get("/{team_id}/roster")
-def get_team_roster(team_id: int):
-    response = get_data(BASE_URL, f"/api/v1/teams/{team_id}/roster", {"season": datetime.now().year})
-    if response == "error":
-        return "error"
-    return response["roster"]
+async def get_team_roster(team_id: int):
+    players = await Player.find({"team_id": team_id}).to_list()
+    return players
 
-@router.get("/logo/{team_name}")
-def get_team_logo(team_name: str):
-    team_logos = get_team_logos()
-    return team_logos.get(team_name, "Team not found")
+@router.get("/{team_id}/stats")
+async def get_team_stats(team_id: int):
+    currentSeason = datetime.now().year - 1
+    path = f"/api/v1/teams/{team_id}/stats"
+    query = {'stats': 'SEASON', 'season': currentSeason, 'group': ["HITTING", "PITCHING", "FIELDING"]}
+    data = await get_request(STATS_BASE_URL, path, query)
+    teamStatsAll = {statData['group']['displayName']: statData['splits'][0]['stat'] for statData in data['stats']}
+    teamStats = {}
+    for statType, stats in teamStatsAll.items():
+        if statType == "pitching":
+            focusedStat = pitchingStats
+        elif statType == "fielding":
+            focusedStat = fieldingStats
+        else:
+            focusedStat = battingStats
+        teamStats[statType] = {stat: value for stat, value in teamStatsAll[statType].items() if stat in focusedStat}
+    return teamStats
+
+@router.get("/{team_id}/follow")
+async def is_followed(team_id: int, user: dict = Depends(get_current_user)):
+    user_task = User.find_one(User.username == user['username'])
+    team_task = Team.find_one(Team.team_id == team_id)
+
+    user_res, team_res = await asyncio.gather(user_task, team_task)
+
+    return {"following" :team_res.name in user_res.team_names}
+
+@router.post("/{team_id}/follow")
+async def follow_unfollow_team(team_id: int, follow: bool, user: dict = Depends(get_current_user)):
+    user_task = User.find_one(User.username == user['username'])
+    team_task = Team.find_one(Team.team_id == team_id)
+
+    user_res, team_res = await asyncio.gather(user_task, team_task)
+
+    if follow:
+        if team_res.name not in user_res.team_names:
+            user_res.team_names.append(team_res.name)
+            await user_res.save()
+            return {"message": "Team followed successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Team already followed")
+    else:
+        if team_res.name in user_res.team_names:
+            user_res.team_names.remove(team_res.name)
+            await user_res.save()
+            return {"message": "Team unfollowed successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Team not followed")

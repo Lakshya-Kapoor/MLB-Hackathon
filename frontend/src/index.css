@@ -1,3 +1,57 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: "Secular";
+  src: url("./assets/SecularOne-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Anton";
+  src: url("./assets/AntonSC-Regular.ttf") format("truetype");
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Custom markdown styles */
+.markdown-content {
+  @apply text-light3 leading-relaxed;
+}
+
+.markdown-content strong {
+  @apply text-2xl font-semibold text-light1;
+}
+
+.markdown-content p {
+  @apply mb-4 text-lg text-light3;
+}
+
+.markdown-content ul {
+  @apply list-disc list-inside mb-4 space-y-1;
+}
+
+.markdown-content ol {
+  @apply list-decimal list-inside mb-4 space-y-1;
+}
+
+.markdown-content a {
+  @apply text-blue-400 hover:text-blue-300 underline;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-red1 pl-4 my-4 italic text-light4;
+}
