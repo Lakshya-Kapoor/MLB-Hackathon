@@ -1,21 +1,13 @@
-from fastapi import APIRouter 
+from fastapi import APIRouter, Depends, HTTPException
 from setUpMlb import statsBaseUrl,defaultParams,currentSeason
 from utils.request import get_request
 from models.player import Player
-from utils.constants import battingStats, fieldingStats, pitchingStats
+from models.team import Team
+from models.user import User
+from utils.middleware import get_current_user
+from utils.constants import battingStats, fieldingStats, pitchingStats, focusedPlayerInfo
+import asyncio
 router = APIRouter()
-
-focusedPlayerInfo = {
-    'fullName':'nickname for the player' ,
-    'primaryNumber':'jersey number',
-    'currentAge':'age of player',
-    'birthCountry':'birth country',
-    'height':'height',
-    'active':'idk',
-    'primaryPosition':'position on the field',
-    'batSide':'batting hand',
-    'pitchHand':'pitching hand'
-}
 
 @router.get("/")
 async def get_players(name: str | None = None, id: int | None = None, limit: int = 5):
@@ -26,7 +18,15 @@ async def get_players(name: str | None = None, id: int | None = None, limit: int
     if id is not None:
         query["player_id"] = id
     
-    response = await Player.find(query).to_list()
+    players = await Player.find(query).to_list()
+    response = []
+    for player in players:
+        team = await Team.find_one({"team_id": player.team_id})
+        player_data = player.model_dump()
+        player_data["team_name"] = team.name
+        player_data["team_logo"] = team.logo
+        response.append(player_data)
+    
     return response[:limit]
 
 
@@ -97,3 +97,34 @@ async def getPlayerOverviewById(playerId:int):
     league = {infoType: info for infoType, info in data['stats'][0]['splits'][0]['league'].items() if infoType in {'name', 'id'}}
     player = {infoType: info for infoType, info in data['stats'][0]['splits'][0]['player'].items() if infoType in {'fullName', 'id'}}
     return {'team': team, 'league': league, 'player': player}
+
+@router.get("/{player_id}/follow")
+async def is_followed(player_id: int, user: dict = Depends(get_current_user)):
+    user_task = User.find_one(User.username == user['username'])
+    player_task = Player.find_one(Player.player_id == player_id)
+
+    user_res, player_res = await asyncio.gather(user_task, player_task)
+
+    return {"following": player_res.name in user_res.player_names}
+
+@router.post("/{player_id}/follow")
+async def follow_unfollow_player(player_id: int, follow: bool, user: dict = Depends(get_current_user)):
+    user_task = User.find_one(User.username == user['username'])
+    player_task = Player.find_one(Player.player_id == player_id)
+
+    user_res, player_res = await asyncio.gather(user_task, player_task)
+
+    if follow:
+        if player_res.name not in user_res.player_names:
+            user_res.player_names.append(player_res.name)
+            await user_res.save()
+            return {"message": "Player followed successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Player already followed")
+    else:
+        if player_res.name in user_res.player_names:
+            user_res.player_names.remove(player_res.name)
+            await user_res.save()
+            return {"message": "Player unfollowed successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Player not followed")

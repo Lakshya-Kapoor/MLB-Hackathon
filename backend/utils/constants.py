@@ -39,3 +39,15 @@ fieldingStats = {
     'reactionDistance': 'Reaction Time'
 
 }
+
+focusedPlayerInfo = {
+    'fullName':'nickname for the player' ,
+    'primaryNumber':'jersey number',
+    'currentAge':'age of player',
+    'birthCountry':'birth country',
+    'height':'height',
+    'active':'idk',
+    'primaryPosition':'position on the field',
+    'batSide':'batting hand',
+    'pitchHand':'pitching hand'
+}
