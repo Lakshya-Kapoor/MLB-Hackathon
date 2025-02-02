@@ -42,11 +42,11 @@ export function Stats() {
 
   return (
     <div className="flex flex-col gap-6 p-4">
-      {Object.entries(stats).map(([type, stats]) => (
-        <DropdownCard title={type}>
+      {Object.entries(stats).map(([type, stats], index) => (
+        <DropdownCard key={index} title={type}>
           <div className="grid grid-cols-3 gap-4">
-            {Object.entries(stats).map(([key, value]) => (
-              <StatItem label={key} value={value} />
+            {Object.entries(stats).map(([key, value], index) => (
+              <StatItem key={index} label={key} value={value} />
             ))}
           </div>
         </DropdownCard>

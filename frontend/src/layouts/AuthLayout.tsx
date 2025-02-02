@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { AnimationControls, motion, useAnimation } from "framer-motion";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { getRandomPosition } from "../utils/animation";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function AuthLayout() {
+  const { userToken, loading } = useContext(AuthContext)!;
   const blueControls = useAnimation();
   const redControls = useAnimation();
   const blobRadius = 200;
@@ -17,7 +19,10 @@ export default function AuthLayout() {
     positionRef: React.MutableRefObject<{ x: number; y: number }>,
     otherPositionRef: React.MutableRefObject<{ x: number; y: number }>
   ) => {
+    let isCancelled = false;
+
     const animate = async () => {
+      if (isCancelled) return;
       const target = getRandomPosition(blobRadius, otherPositionRef.current);
       positionRef.current = target;
       await controls.start({
@@ -31,6 +36,10 @@ export default function AuthLayout() {
       requestAnimationFrame(animate);
     };
     animate();
+
+    return () => {
+      isCancelled = true;
+    };
   };
 
   useEffect(() => {
@@ -53,13 +62,21 @@ export default function AuthLayout() {
     blueControls.set(bluePosition.current);
     redControls.set(redPosition.current);
 
-    animateBlob(blueControls, bluePosition, redPosition);
-    animateBlob(redControls, redPosition, bluePosition);
+    const blueCleanup = animateBlob(blueControls, bluePosition, redPosition);
+    const redCleanup = animateBlob(redControls, redPosition, bluePosition);
+
+    return () => {
+      blueCleanup();
+      redCleanup();
+    };
   }, [blueControls, redControls]);
+
+  if (loading) return <div className="bg-dark5 min-h-screen"></div>;
+
+  if (userToken) return <Navigate to="/" />;
 
   return (
     <div className="fixed inset-0 bg-dark5 overflow-hidden">
-      {/* Blue blob */}
       <motion.div
         className="absolute rounded-full bg-blue-500/50 blur-[100px]"
         animate={blueControls}
@@ -69,7 +86,6 @@ export default function AuthLayout() {
         }}
       />
 
-      {/* Red blob */}
       <motion.div
         className="absolute rounded-full bg-red-500/50 blur-[100px]"
         animate={redControls}
@@ -79,7 +95,6 @@ export default function AuthLayout() {
         }}
       />
 
-      {/* Content overlay */}
       <div className="relative z-10 min-h-screen flex items-center justify-center text-white">
         <Outlet />
       </div>

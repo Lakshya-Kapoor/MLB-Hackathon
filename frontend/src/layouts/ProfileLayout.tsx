@@ -1,38 +1,64 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, Outlet, useParams } from "react-router-dom";
 import FollowButton from "../components/FollowButton";
 import { PlayerData, TeamData } from "../utils/types";
 import { ProfileContext } from "../contexts/ProfileContext";
 import ProfileNav from "../components/ProfileNav";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function ProfileLayout({ type }: { type: "players" | "teams" }) {
   const { id } = useParams();
   const [data, setData] = useState<TeamData | PlayerData | null>(null);
   const [following, setFollowing] = useState(false);
+  const { userToken } = useContext(AuthContext)!;
 
   useEffect(() => {
-    const url = `http://localhost:8000/${type}?id=${id}`;
+    const urls = [
+      `http://localhost:8000/${type}?id=${id}`,
+      `http://localhost:8000/${type}/${id}/follow`,
+    ];
 
     let ignore = false;
 
-    async function getTeamData() {
-      const res = await fetch(url);
-      const data = await res.json();
+    async function getData() {
+      const requests = [
+        fetch(urls[0]).then((res) => res.json()),
+        fetch(urls[1], {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }).then((res) => res.json()),
+      ];
+      const responses = await Promise.all(requests);
 
       if (!ignore) {
-        if (type === "players") {
-          setData(data[0]);
-        }
-        setData(data[0]);
+        setData(responses[0][0]);
+        console.log(responses[1]);
+        setFollowing(responses[1].following);
       }
     }
-    getTeamData();
+
+    getData();
 
     return () => {
       ignore = true;
-      setData(null);
     };
-  }, [id, type]);
+  }, [id, type, userToken]);
+
+  function handleFollow() {
+    if (!userToken) {
+      alert("Login to follow");
+      return;
+    }
+
+    fetch(`http://localhost:8000/${type}/${id}/follow?follow=${!following}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+      },
+    });
+    setFollowing(!following);
+  }
 
   if (!data) {
     return <div className="text-white">Loading...</div>;
@@ -69,10 +95,7 @@ export default function ProfileLayout({ type }: { type: "players" | "teams" }) {
               )}
             </div>
           </div>
-          <FollowButton
-            following={following}
-            onClick={() => setFollowing(!following)}
-          />
+          <FollowButton following={following} onClick={handleFollow} />
         </section>
         <div className="border-b border-dark1 select-none relative">
           <ProfileNav />

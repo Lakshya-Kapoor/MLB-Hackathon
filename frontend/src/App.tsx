@@ -14,36 +14,42 @@ import ProfileHome from "./pages/ProfileHome";
 import ProfileArticles from "./pages/ProfileArticles";
 import ProfilePolls from "./pages/ProfilePolls";
 import ProfileSchedule from "./pages/ProfileSchedule";
+import AuthProvider from "./contexts/AuthProvider";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/auth/" element={<AuthLayout />}>
-          <Route path="signup" element={<Signup />} />
-          <Route path="login" element={<Login />} />
-        </Route>
-        <Route path="/" element={<NavLayout />}>
-          <Route path="articles" element={<Articles />} />
-          <Route path="polls" element={<Polls />} />
-          <Route path="teams" element={<Teams />} />
-          <Route path="players" element={<Players />} />
-          <Route path="teams/:id/" element={<ProfileLayout type="teams" />}>
-            <Route index element={<ProfileHome />} />
-            <Route path="roster" element={<Roster />} />
-            <Route path="stats" element={<Stats />} />
-            <Route path="schedule" element={<ProfileSchedule />} />
-            <Route path="articles" element={<ProfileArticles />} />
-            <Route path="polls" element={<ProfilePolls />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth/" element={<AuthLayout />}>
+            <Route path="signup" element={<Signup />} />
+            <Route path="login" element={<Login />} />
           </Route>
-          <Route path="players/:id" element={<ProfileLayout type="players" />}>
-            <Route index element={<ProfileHome />} />
-            <Route path="stats" element={<Stats />} />
-            <Route path="articles" element={<ProfileArticles />} />
-            <Route path="polls" element={<ProfilePolls />} />
+          <Route path="/" element={<NavLayout />}>
+            <Route path="articles" element={<Articles />} />
+            <Route path="polls" element={<Polls />} />
+            <Route path="teams" element={<Teams />} />
+            <Route path="players" element={<Players />} />
+            <Route path="teams/:id/" element={<ProfileLayout type="teams" />}>
+              <Route index element={<ProfileHome />} />
+              <Route path="roster" element={<Roster />} />
+              <Route path="stats" element={<Stats />} />
+              <Route path="schedule" element={<ProfileSchedule />} />
+              <Route path="articles" element={<ProfileArticles />} />
+              <Route path="polls" element={<ProfilePolls />} />
+            </Route>
+            <Route
+              path="players/:id"
+              element={<ProfileLayout type="players" />}
+            >
+              <Route index element={<ProfileHome />} />
+              <Route path="stats" element={<Stats />} />
+              <Route path="articles" element={<ProfileArticles />} />
+              <Route path="polls" element={<ProfilePolls />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

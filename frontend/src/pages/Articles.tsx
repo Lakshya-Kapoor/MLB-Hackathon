@@ -33,7 +33,7 @@ export default function Article() {
     return <div className="text-white">Loading...</div>;
   }
   return (
-    <article className="max-w-4xl mx-auto p-6 bg-dark4 rounded-lg shadow-xl">
+    <article className="max-w-4xl mx-auto p-6 bg-dark3 rounded-lg shadow-xl">
       <header className="mb-8">
         <h1 className="text-4xl font-bold text-light1 mb-4">{article.title}</h1>
         <p className="text-xl text-blue-400 italic mb-4">

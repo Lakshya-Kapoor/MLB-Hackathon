@@ -1,10 +1,12 @@
 import { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { SearchContext } from "../contexts/SearchContext";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function NavBar() {
   const [notification, setNotification] = useState(false);
   const { search, setSearch } = useContext(SearchContext);
+  const { loading, userToken, logout } = useContext(AuthContext)!;
 
   return (
     <header className="select-none border-b-[1px] border-dark1 bg-dark4 fixed z-10 top-0 w-full h-20 xl:px-0 px-[30px] flex justify-center text-light1">
@@ -13,9 +15,6 @@ export default function NavBar() {
           <h1>MLB</h1>
           <NavLink setSearch={setSearch} to="/teams">
             Teams
-          </NavLink>
-          <NavLink setSearch={setSearch} to="/players">
-            Players
           </NavLink>
           <NavLink setSearch={setSearch} to="/articles">
             Articles
@@ -64,12 +63,23 @@ export default function NavBar() {
               }`}
             />
           </div>
-          <Link
-            to={"/auth/login"}
-            className="border border-light1 border-opacity-30 px-6 py-3 rounded-lg hover:border-opacity-100 active:bg-light1 active:text-dark5 transition-colors duration-300"
-          >
-            Login
-          </Link>
+          {loading ? (
+            <></>
+          ) : userToken ? (
+            <button
+              onClick={logout}
+              className="border border-light1 border-opacity-30 px-6 py-3 rounded-lg hover:border-opacity-100 active:bg-light1 active:text-dark5 transition-colors duration-300"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              to={"/auth/login"}
+              className="border border-light1 border-opacity-30 px-6 py-3 rounded-lg hover:border-opacity-100 active:bg-light1 active:text-dark5 transition-colors duration-300"
+            >
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </header>

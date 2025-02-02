@@ -20,6 +20,7 @@ export default function InputElement({
       onChange={onChange}
       placeholder={placeHolder}
       className="outline-none bg-transparent p-2 text-light1 font-normal text-xl border-b-[1px] border-light5 border-opacity-50 focus:border-opacity-100"
+      required
     />
   );
 }
