@@ -68,7 +68,7 @@ class NewsApiArticleGetter:
         self.model_to_use = "gemini-1.5-flash"
         genai.configure(api_key=GEMINI_API_KEY)
         self.writerModel = WriterModel(self.model_to_use)
-        self.newsApi_day_limit = 100
+        self.newsApi_day_limit = 1000
         self.newsApi_api_calls = 0
 
     async def get_articles_newsApi(self,q:str,option:Option = Option.everything,searchin:SearchIn|None = None,beg:str|None = None,sortBy:SortBy|None=None,pageSize:int|None = None,page:int|None = None):
@@ -173,7 +173,7 @@ class NewsApiArticleGetter:
             newsApiResponse['articles'],
             min(newsApiResponse['totalResults'],resultsCount),
             featuring="Major League Baseball")
-
+        print(selectedArticles)
         for i in selectedArticles:
             articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature="Major League Baseball")
             article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])

@@ -9,7 +9,7 @@ from models.team import Team
 from jobs.update_articles.gemini_req_wrapper  import GeminiDayLimit,gemini_api_calls
 async def test():
     articleGetter  = NewsApiArticleGetter() 
-    data = await articleGetter.get_articles_players("Juan Soto")
+    data = await articleGetter.get_articles_players("Juan Soto",resultsCount=15)
     for article in data:
         print(article)
     await articleGetter.close()
@@ -27,10 +27,9 @@ def sleep_for_day():
 
 
 async def store_player_articles():
-    
-    # players = await Player.find().to_list()
-    # player_names = [player.name for player in players]
-    player_names = []
+    global players_article_stored
+    players = await Player.find().to_list()
+    player_names = [player.name for player in players]
     while(players_article_stored < len(player_names)):
         max_retries = 5
         tries = 0
@@ -39,8 +38,8 @@ async def store_player_articles():
         while( (not success) and tries<max_retries):
             player_name = player_names[players_article_stored]
             try:
-                articles = articleGetter.get_articles_players(playerName=player_name,resultsCount=2)
-                # await Article.insert_many(articles)
+                articles = await articleGetter.get_articles_players(playerName=player_name,resultsCount=2)
+                await Article.insert_many(articles)
                 success = True
             except GeminiDayLimit:
                 sleep_for_day()
@@ -48,14 +47,14 @@ async def store_player_articles():
                 sleep_for_day()
             except Exception:
                 tries+=1
-        
+        print(players_article_stored)
         players_article_stored+=1
 
 async def store_team_articles():
-    
-    # teams = Team.find().to_list()
-    # team_names = [team.name for team in teams]
-    team_names = [] 
+    global teams__article_stored
+    teams = await Team.find().to_list()
+    team_names = [team.name for team in teams]
+    # team_names = [] 
     while(teams__article_stored < len(team_names)):
         max_retries = 5
         tries = 0
@@ -64,8 +63,8 @@ async def store_team_articles():
             
             team_name = team_names[teams__article_stored]
             try:    
-                articles = articleGetter.get_articles_team(teamName=team_name,resultsCount=5)
-                # await Article.insert_many(articles)
+                articles = await articleGetter.get_articles_team(teamName=team_name,resultsCount=5)
+                await Article.insert_many(articles)
                 success = True
             except GeminiDayLimit:
                 sleep_for_day()
@@ -73,17 +72,18 @@ async def store_team_articles():
                 sleep_for_day()
             except Exception:
                 tries+=1   
-        
+        print(teams__article_stored)
         teams__article_stored+=1
 
 async def store_mlb_articles():
+    global mlb_article_stored
     max_retries = 5
     tries = 0  
     success = False  
     while((not success) and tries<max_retries):  
         try:
-            articles = articleGetter.get_articles_mlb(resultsCount=15) 
-            # await Article.insert_many(articles)   
+            articles = await articleGetter.get_articles_mlb(resultsCount=15) 
+            await Article.insert_many(articles)   
             success = True
            
         except GeminiDayLimit:
@@ -92,14 +92,15 @@ async def store_mlb_articles():
             sleep_for_day()
         except Exception:
             tries+=1    
-        
+    
         mlb_article_stored+=1
+    print("done")
 
 async def  main_func():
     await init_db()
     # await store_player_articles()
     # await store_team_articles()
-    # await store_mlb_articles()
-    await test()
+    await store_mlb_articles()
+    # await test()
 asyncio.run(main_func())
 
