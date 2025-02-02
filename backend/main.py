@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from routers import schedule, team, player, auth, standing
+from routers import schedule, team, player, auth, standing,article
 from utils import database
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -52,3 +52,4 @@ app.include_router(auth.router, prefix="/auth")
 app.include_router(player.router,prefix="/players")
 app.include_router(schedule.router,prefix="/schedule")
 app.include_router(standing.router,prefix="/standing")
+app.include_router(article.router,prefix="/article")

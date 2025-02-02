@@ -30,7 +30,9 @@ class ArticleResponseSchema(typing.TypedDict):
 class NewsApiDayLimit(Exception):
     def __init__(self):
         super().__init__("NewsApi daily limit reached")
-
+class ArticleFormatError(Exception):
+    def __init__(self):
+        super().__init__("Article returned from model is not in correct format ")
 class WriterModel:
     def __init__(self,model_to_use):
         self.model_instruction = "mimick the tone of a article writer for fans expressing him/her  opinion and facts"
@@ -46,7 +48,7 @@ class WriterModel:
             model_name=self.model_used,
             generation_config=self.genration_config,
             system_instruction=self.model_instruction)
-        self.misc_tags = ['transfer','hot take','injury','analysis','League']
+        self.misc_tags = ["trade","rumour","history","prospects","recap","meme","stats","spring training","post season","world series","funny"]
     
     async def generate(self,url:str,feature:str) -> ArticleResponseSchema:
         
@@ -54,8 +56,8 @@ class WriterModel:
         context: you are a article writer who writes about Major League Baseball
         task: Step1- read the article with the url provided here - {url},step2-generate an article for the mlb fans to read and engage featuring the {feature}
         step3 specify the tags for  the article from the given list of tags below
-        Dont dos:  You should never mention the provided article in your article in any form, dont exaggerate the article lines keep it more close to article,
-        dos: step 1 divide the main content into paragraphs,step 2 give subheading to these paragraphs 
+        Dont dos:  You should never mention the provided article in your article in any form, dont exaggerate the article lines keep it more close to article, 
+        dos: step 1 divide the main content into paragraphs ,step 2 give subheading to these paragraphs
         tags:{self.misc_tags},add tag with player name that is revelant to the article, add tag with team name that is revalnt to the article 
         """
         response = await gemini_api_call(model=self.model,prompt=prompt)
@@ -70,6 +72,7 @@ class NewsApiArticleGetter:
         self.writerModel = WriterModel(self.model_to_use)
         self.newsApi_day_limit = 1000
         self.newsApi_api_calls = 0
+        self.max_retries_on_foramting_articles = 3
 
     async def get_articles_newsApi(self,q:str,option:Option = Option.everything,searchin:SearchIn|None = None,beg:str|None = None,sortBy:SortBy|None=None,pageSize:int|None = None,page:int|None = None):
         
@@ -125,13 +128,13 @@ class NewsApiArticleGetter:
                     publishedDate= dateutil.parser.parse(newsApiArticle['publishedAt'])
             )
         except Exception:
-            print(articleText)
+            raise ArticleFormatError
 
     async def get_articles_players(self,playerName:str,beg:str|None = None,resultsCount:int = 1) -> list[Article]:
 
         query = f"+{playerName}" 
         articles = [] 
-        fetchCount = 10
+        fetchCount = min(resultsCount*5,20)
         newsApiResponse = await self.get_articles_newsApi(
             q=query,
             searchin=SearchIn.description,
@@ -140,24 +143,28 @@ class NewsApiArticleGetter:
             sortBy=SortBy.popularity)
 
         if(newsApiResponse['totalResults'] == 0):
-            return 
+            return []
         
         selectedArticles = await self.filter_out_articles(
             newsApiResponse['articles'],
-            min(newsApiResponse['totalResults'],resultsCount),
+            min(len(newsApiResponse['articles']),resultsCount),
             featuring=playerName)
         
         for i in selectedArticles:
-
-            articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=playerName)
-            article = self.format_into_article(articleText,newsApiResponse['articles'][i])
+            tries = 0
+            while(tries<self.max_retries_on_foramting_articles):
+                try:
+                    articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=playerName)
+                    article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
+                except ArticleFormatError:
+                    tries+=1
             articles.append(article)
 
         return articles
     async def get_articles_mlb(self,beg:str|None = None,resultsCount:int=10):
         articles = []
         query = f"mlb OR Major League Baseball"
-        fetchCount = 20
+        fetchCount = min(resultsCount*3,60)
 
         newsApiResponse = await self.get_articles_newsApi(
             q=query,
@@ -167,23 +174,28 @@ class NewsApiArticleGetter:
             sortBy=SortBy.popularity)
 
         if(newsApiResponse['totalResults'] == 0):
-            return 
+            return []
 
         selectedArticles = await self.filter_out_articles(
             newsApiResponse['articles'],
-            min(newsApiResponse['totalResults'],resultsCount),
+            min(len(newsApiResponse['articles']),resultsCount),
             featuring="Major League Baseball")
-        print(selectedArticles)
+        # print(selectedArticles)
         for i in selectedArticles:
-            articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature="Major League Baseball")
-            article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
+            tries = 0
+            while(tries<self.max_retries_on_foramting_articles):
+                try:
+                    articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature="Major League Baseball")
+                    article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
+                except ArticleFormatError:
+                    tries+=1
             articles.append(article)
 
         return articles
     async def get_articles_team(self,teamName:str,beg:str|None = None,resultsCount:int =3) -> list[Article]:
         articles = []
         query = f"+{teamName}"
-        fetchCount = 15
+        fetchCount = min(resultsCount*5,30)
         newsApiResponse = await self.get_articles_newsApi(
             q=query,
             searchin=SearchIn.description,
@@ -192,15 +204,20 @@ class NewsApiArticleGetter:
             sortBy=SortBy.popularity)
     
         if(newsApiResponse['totalResults'] == 0):
-            return 
+            return []
     
         selectedArticles = await self.filter_out_articles(
             newsApiResponse['articles'],
-            min(newsApiResponse['totalResults'],resultsCount),
+            min(len(newsApiResponse['articles']),resultsCount),
             featuring=teamName)
         for i in selectedArticles:
-            articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=teamName)
-            article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
+            tries = 0
+            while(tries<self.max_retries_on_foramting_articles):
+                try:
+                    articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=teamName)
+                    article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
+                except ArticleFormatError:
+                    tries+=1
             articles.append(article)
     
         return articles

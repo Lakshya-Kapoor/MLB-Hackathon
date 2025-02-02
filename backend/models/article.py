@@ -1,6 +1,15 @@
 from beanie import Document
 from datetime import datetime,timezone
 from pydantic import Field
+from pydantic import BaseModel
+from enum import Enum
+class Reactions(BaseModel):
+    upVotes:int = Field(default=0)
+    downVotes:int = Field(default=0)
+
+class ReactionTypes(Enum):
+    upVotes = "upVotes"
+    downVotes = "downVotes"
 
 class Article(Document):
     
@@ -13,7 +22,6 @@ class Article(Document):
     url:str|None
     publishedDate:datetime|None
     uploadDate:datetime = Field(default_factory=lambda:datetime.now(timezone.utc))
-    # def __str__(self):
-    #     return  str({"articleText":self.content[:20],"originalUrl":self.url,"author":self.author,"tags":self.tags,"title":self.title})
+    reactions:Reactions = Field(default_factory=lambda: Reactions())
     class Settings:
         name = "articles"
