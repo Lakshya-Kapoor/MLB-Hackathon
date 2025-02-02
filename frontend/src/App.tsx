@@ -28,10 +28,7 @@ export default function App() {
           <Route path="polls" element={<Polls />} />
           <Route path="teams" element={<Teams />} />
           <Route path="players" element={<Players />} />
-          <Route
-            path="teams/:id/"
-            element={<ProfileLayout profileType="teams" />}
-          >
+          <Route path="teams/:id/" element={<ProfileLayout type="teams" />}>
             <Route index element={<ProfileHome />} />
             <Route path="roster" element={<Roster />} />
             <Route path="stats" element={<Stats />} />
@@ -39,13 +36,9 @@ export default function App() {
             <Route path="articles" element={<ProfileArticles />} />
             <Route path="polls" element={<ProfilePolls />} />
           </Route>
-          <Route
-            path="players/:id"
-            element={<ProfileLayout profileType="players" />}
-          >
+          <Route path="players/:id" element={<ProfileLayout type="players" />}>
             <Route index element={<ProfileHome />} />
             <Route path="stats" element={<Stats />} />
-            <Route path="schedule" element={<ProfileSchedule />} />
             <Route path="articles" element={<ProfileArticles />} />
             <Route path="polls" element={<ProfilePolls />} />
           </Route>

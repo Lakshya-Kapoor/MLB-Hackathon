@@ -12,6 +12,8 @@ export interface PlayerData {
   name: string;
   player_id: number;
   team_id: number;
+  team_name: string;
+  team_logo: string;
   age: number;
   height: string;
   weight: number;
@@ -63,4 +65,16 @@ export interface FieldingStats {
   errors: number;
   rangeFactorPer9Inn: string;
   doublePlays: number;
+}
+
+export interface ArticleData {
+  title: string;
+  catchyPhrase: string;
+  description: string;
+  content: string;
+  tags: string[];
+  author: string;
+  url: string;
+  publishedDate: Date;
+  uploadDate: Date;
 }

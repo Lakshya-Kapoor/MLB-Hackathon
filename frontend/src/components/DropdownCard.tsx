@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Trophy, Gauge, Shield } from "lucide-react"; // Assuming these icons are available
 
 interface DropdownCardProps {
   title: string;
@@ -9,6 +9,19 @@ interface DropdownCardProps {
 export function DropdownCard({ title, children }: DropdownCardProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const renderIcon = () => {
+    switch (title.toLowerCase()) {
+      case "hitting":
+        return <Trophy className="w-5 h-5 mr-2 text-red1" />;
+      case "fielding":
+        return <Shield className="w-5 h-5 mr-2 text-emerald-400" />;
+      case "pitching":
+        return <Gauge className="w-5 h-5 mr-2 text-blue-500" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="border border-dark1 rounded-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out text-light1">
       <button
@@ -17,7 +30,10 @@ export function DropdownCard({ title, children }: DropdownCardProps) {
           isOpen ? "bg-dark1/70" : ""
         }`}
       >
-        <h2 className="text-xl font-semibold">{title}</h2>
+        <div className="flex items-center">
+          {renderIcon()}
+          <h2 className="text-xl font-medium text-light3">{title}</h2>
+        </div>
         <ChevronDown
           className={`w-5 h-5 transition-transform duration-300 ${
             isOpen ? "transform rotate-180" : ""

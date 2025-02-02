@@ -3,14 +3,13 @@ import SubNavButton from "./SubNavButton";
 import { ProfileContext } from "../contexts/ProfileContext";
 
 export default function ProfileNav() {
-  const profileType = useContext(ProfileContext);
+  const { type } = useContext(ProfileContext)!;
 
-  if (profileType == "players") {
+  if (type == "players") {
     return (
       <nav className="-mb-px flex space-x-8">
         <SubNavButton name="Home" />
         <SubNavButton name="Stats" />
-        <SubNavButton name="Schedule" />
         <SubNavButton name="Articles" />
         <SubNavButton name="Polls" />
       </nav>

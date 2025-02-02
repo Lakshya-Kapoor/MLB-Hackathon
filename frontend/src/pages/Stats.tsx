@@ -8,15 +8,15 @@ import { ProfileContext } from "../contexts/ProfileContext";
 export function Stats() {
   const { id } = useParams();
   const [stats, setStats] = useState<{
-    hitting: HittingStats;
-    pitching: PitchingStats;
-    fielding: FieldingStats;
+    Hitting: HittingStats;
+    Pitching: PitchingStats;
+    Fielding: FieldingStats;
   } | null>(null);
 
-  const page = useContext(ProfileContext);
+  const { type } = useContext(ProfileContext)!;
 
   useEffect(() => {
-    const url = `http://localhost:8000/${page}/${id}/stats`;
+    const url = `http://localhost:8000/${type}/${id}/stats`;
 
     let ignore = false;
 
@@ -34,7 +34,7 @@ export function Stats() {
     return () => {
       ignore = true;
     };
-  }, [id, page]);
+  }, [id, type]);
 
   if (!stats) {
     return <div className="text-white">Loading...</div>;
@@ -43,7 +43,7 @@ export function Stats() {
   return (
     <div className="flex flex-col gap-6 p-4">
       {Object.entries(stats).map(([type, stats]) => (
-        <DropdownCard title={`${type} Stats`}>
+        <DropdownCard title={type}>
           <div className="grid grid-cols-3 gap-4">
             {Object.entries(stats).map(([key, value]) => (
               <StatItem label={key} value={value} />

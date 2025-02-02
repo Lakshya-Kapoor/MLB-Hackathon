@@ -41,7 +41,7 @@ export default function SubNavButton({ name }: { name: TeamSection }) {
           relative pb-4 px-1 font-medium text-lg flex items-center
           transition-all duration-300 ease-in-out ${
             isActive
-              ? "text-blue-400 hover:text-blue-300"
+              ? "text-blue-400"
               : "text-light5 text-opacity-60 hover:text-opacity-100"
           }
         `}
@@ -62,7 +62,7 @@ export default function SubNavButton({ name }: { name: TeamSection }) {
           transform transition-all duration-300 ease-in-out
           ${
             isActive
-              ? "bg-blue-400 hover:bg-blue-300 scale-x-100"
+              ? "bg-blue-400 scale-x-100"
               : "bg-transparent scale-x-0 hover:scale-x-100 hover:bg-gray-300"
           }
         `}

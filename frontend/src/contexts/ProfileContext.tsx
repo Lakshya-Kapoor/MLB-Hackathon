@@ -1,3 +1,8 @@
 import { createContext } from "react";
+import { PlayerData, TeamData } from "../utils/types";
 
-export const ProfileContext = createContext<"players" | "teams" | null>(null);
+export interface ProfileContextProps {
+  type: "players" | "teams";
+  data: TeamData | PlayerData | undefined;
+}
+export const ProfileContext = createContext<ProfileContextProps | null>(null);

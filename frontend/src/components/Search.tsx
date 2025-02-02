@@ -5,9 +5,11 @@ import PlayerResults from "./PlayerResults";
 
 export default function Search() {
   const [text, setText] = useState("");
-  const [teams, setTeams] = useState([]);
-  const [players, setPlayers] = useState([]);
-  const [articles, setArticles] = useState([]);
+  const [results, setResults] = useState({
+    teams: [],
+    players: [],
+    articles: [],
+  });
 
   async function searchFunction(text: string) {
     const urls = [
@@ -19,17 +21,14 @@ export default function Search() {
       fetch(url).then((res) => res.json())
     );
     const responses = await Promise.all(requests);
-    setTeams(responses[0]);
-    setPlayers(responses[1]);
+    setResults({ teams: responses[0], players: responses[1], articles: [] });
   }
 
   async function searchChange(e: ChangeEvent<HTMLInputElement>) {
     const text = e.target.value;
     setText(text);
     if (text === "") {
-      setTeams([]);
-      setPlayers([]);
-      setArticles([]);
+      setResults({ teams: [], players: [], articles: [] });
       return;
     }
 
@@ -40,12 +39,15 @@ export default function Search() {
     <div>
       <SearchInput value={text} onChange={async (e) => await searchChange(e)} />
       <div className="mt-12 grid grid-cols-2">
-        {teams.length > 0 && <TeamResults teams={teams} />}
-        {players.length > 0 && <PlayerResults players={players} />}
-        {(teams.length > 0 || players.length > 0) && articles.length > 0 && (
-          <span className="col-span-2 bg-dark1 h-[2px] my-5" />
+        {results.teams.length > 0 && <TeamResults teams={results.teams} />}
+        {results.players.length > 0 && (
+          <PlayerResults players={results.players} />
         )}
-        {articles.length > 0 && <ArticleResults />}
+        {(results.teams.length > 0 || results.players.length > 0) &&
+          results.articles.length > 0 && (
+            <span className="col-span-2 bg-dark1 h-[2px] my-5" />
+          )}
+        {results.articles.length > 0 && <ArticleResults />}
       </div>
     </div>
   );
