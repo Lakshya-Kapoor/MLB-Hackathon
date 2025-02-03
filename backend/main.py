@@ -3,13 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from routers import schedule, team, player, auth, standing,article
 from utils import database
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# from apscheduler.triggers.cron import CronTrigger
+# from apscheduler.triggers.interval import IntervalTrigger
 from utils.setUpMlb import client
 from utils.setUpMlb import setUpClient
-from jobs.team_data import save_team_data
-from jobs.player_data import save_player_data
+# from jobs.team_data import save_team_data
+# from jobs.player_data import save_player_data
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
