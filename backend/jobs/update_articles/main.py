@@ -6,8 +6,7 @@ from models.player import Player
 from models.team import Team
 from models.progress import Progress,State
 from jobs.update_articles.gemini_req_wrapper  import GeminiDayLimit
-from datetime import datetime
-from datetime import timezone
+from datetime import datetime,timezone,timedelta
 async def test():
     articleGetter  = NewsApiArticleGetter() 
     data = await articleGetter.get_articles_players("Juan Soto",resultsCount=1)
@@ -19,13 +18,12 @@ async def store_player_articles():
     global progress
     players = await Player.find().to_list()
     player_names = [player.name for player in players]
-    while(progress.players_with_stored_articles < len(player_names)):
+    while(progress.players_with_article_stored < len(player_names)):
         max_retries = 5
         tries = 0
         success = False
-        
         while( (not success) and tries<max_retries):
-            player_name = player_names[progress.players_with_stored_articles]
+            player_name = player_names[progress.players_with_article_stored]
             try:
                 articles = await articleGetter.get_articles_players(playerName=player_name,resultsCount=2,beg=progress.last_complete_fetch_date)
                 await Article.insert_many(articles)
@@ -36,20 +34,20 @@ async def store_player_articles():
                 raise e
             except Exception:
                 tries+=1
-        print(progress.players_with_stored_articles)
-        progress.players_with_stored_articles+=1
+        print(progress.players_with_article_stored)
+        progress.players_with_article_stored+=1
 
 async def store_team_articles():
     global progress
     teams = await Team.find().to_list()
     team_names = [team.name for team in teams]
-    while(progress.teams_with_stored_articles < len(team_names)):
+    while(progress.teams_with_article_stored < len(team_names)):
         max_retries = 5
         tries = 0
         success = False
         while((not success) and tries<max_retries):
             
-            team_name = team_names[progress.teams_with_stored_articles]
+            team_name = team_names[progress.teams_with_article_stored]
             try:    
                 articles = await articleGetter.get_articles_team(teamName=team_name,resultsCount=5,beg=progress.last_complete_fetch_date)
                 await Article.insert_many(articles)
@@ -60,8 +58,8 @@ async def store_team_articles():
                 raise e
             except Exception:
                 tries+=1   
-        print(progress.teams_with_stored_articles)
-        progress.teams_with_stored_articles+=1
+        print(progress.teams_with_article_stored)
+        progress.teams_with_article_stored+=1
 
 async def store_mlb_articles():
     global progress
@@ -81,7 +79,7 @@ async def store_mlb_articles():
         except Exception:
             tries+=1    
     
-        progress.mlb_article_stored+=1
+        progress.mlb_articles_stored+=1
     print("done")
 
 async def intialize_progess():
@@ -107,21 +105,14 @@ async def  main_func():
         await store_player_articles()
         await store_team_articles()
         await store_mlb_articles()
-        progress.last_complete_fetch_date = progress.last_execution_start_date
-        progress.state = State.completed
+        progress.last_complete_fetch_date = progress.last_execution_start_date - timedelta(days=1) # newsApi have a 24 hour delay
+        progress.state = State.start
     except GeminiDayLimit:
         pass
     except NewsApiDayLimit:
         pass
     await articleGetter.close()
     del articleGetter
-    save_progress()
+    await save_progress()
     # await test()
-
-
-# players_with_stored_articles = 0
-# teams_with_stored_articles = 0
-# progress.mlb_article_stored  = 0
-# articleGetter = NewsApiArticleGetter()
-# last_run_date = datetime() # some date in date time format 
 asyncio.run(main_func())

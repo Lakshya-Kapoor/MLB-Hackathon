@@ -149,13 +149,14 @@ class NewsApiArticleGetter:
             newsApiResponse['articles'],
             min(len(newsApiResponse['articles']),resultsCount),
             featuring=playerName)
-        
         for i in selectedArticles:
             tries = 0
-            while(tries<self.max_retries_on_foramting_articles):
+            success = False
+            while((not success) and tries<self.max_retries_on_foramting_articles):
                 try:
                     articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=playerName)
                     article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
+                    success = True
                 except ArticleFormatError:
                     tries+=1
             articles.append(article)
@@ -183,10 +184,12 @@ class NewsApiArticleGetter:
         # print(selectedArticles)
         for i in selectedArticles:
             tries = 0
-            while(tries<self.max_retries_on_foramting_articles):
+            success = False
+            while((not success) and tries<self.max_retries_on_foramting_articles):
                 try:
                     articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature="Major League Baseball")
                     article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
+                    success = True
                 except ArticleFormatError:
                     tries+=1
             articles.append(article)
@@ -212,10 +215,12 @@ class NewsApiArticleGetter:
             featuring=teamName)
         for i in selectedArticles:
             tries = 0
-            while(tries<self.max_retries_on_foramting_articles):
+            success = False
+            while((not success ) and tries<self.max_retries_on_foramting_articles):
                 try:
                     articleText = await self.writerModel.generate(url = newsApiResponse['articles'][i]['url'],feature=teamName)
                     article = self.format_into_article(articleText=articleText,newsApiArticle=newsApiResponse['articles'][i])
+                    success = True
                 except ArticleFormatError:
                     tries+=1
             articles.append(article)
