@@ -8,12 +8,12 @@ class State(Enum):
     working = "working"
     completed = "completed"
 class Progress(Document):
-    players_with_article_stored:int = 0
-    teams_with_article_stored:int = 0
-    mlb_articles_stored:int = 0
-    last_complete_fetch_date:datetime|None = None
+    players_with_article_stored:int = Field(default=0)
+    teams_with_article_stored:int =  Field(default=0)
+    mlb_articles_stored:int =  Field(default=0)
+    last_complete_fetch_date:datetime|None =  Field(default=None)
     last_execution_start_date:datetime = Field(default_factory=lambda:datetime.now(timezone.utc))
     last_executed_date:datetime = Field(default_factory=lambda:datetime.now(timezone.utc))
-    state:State = State.start
+    state:State =  Field(default=State.start)
     class Settings:
         name = "progress"
