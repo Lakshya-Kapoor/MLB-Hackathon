@@ -1,4 +1,4 @@
-from utils.config import NEWS_API_KEY,GEMINI_API_KEY,DB_URL
+from utils.config import NEWS_API_KEY,GEMINI_API_KEY
 from jobs.update_articles.gemini_req_wrapper import gemini_api_call
 from httpx import AsyncClient 
 from enum import Enum

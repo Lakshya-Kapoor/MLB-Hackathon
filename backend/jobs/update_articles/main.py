@@ -1,12 +1,13 @@
 from utils.database import init_db
 from jobs.update_articles.newsApi_article_getter import NewsApiArticleGetter,NewsApiDayLimit
 import asyncio
-import datetime
-import time 
 from models.article import Article
 from models.player import Player
 from models.team import Team
-from jobs.update_articles.gemini_req_wrapper  import GeminiDayLimit,gemini_api_calls
+from models.progress import Progress,State
+from jobs.update_articles.gemini_req_wrapper  import GeminiDayLimit
+from datetime import datetime
+from datetime import timezone
 async def test():
     articleGetter  = NewsApiArticleGetter() 
     data = await articleGetter.get_articles_players("Juan Soto",resultsCount=1)
@@ -14,96 +15,113 @@ async def test():
         print(article)
     await articleGetter.close()
 
-
-def sleep_for_day():
-    time.sleep(60*60*24)
-    gemini_api_calls = 0
-    articleGetter.newsApi_req_made = 0
-
-
 async def store_player_articles():
-    global players_with_stored_articles
+    global progress
     players = await Player.find().to_list()
     player_names = [player.name for player in players]
-    while(players_with_stored_articles < len(player_names)):
+    while(progress.players_with_stored_articles < len(player_names)):
         max_retries = 5
         tries = 0
         success = False
         
         while( (not success) and tries<max_retries):
-            player_name = player_names[players_with_stored_articles]
+            player_name = player_names[progress.players_with_stored_articles]
             try:
-                articles = await articleGetter.get_articles_players(playerName=player_name,resultsCount=2)
+                articles = await articleGetter.get_articles_players(playerName=player_name,resultsCount=2,beg=progress.last_complete_fetch_date)
                 await Article.insert_many(articles)
                 success = True
-            except GeminiDayLimit:
-                sleep_for_day()
-            except NewsApiDayLimit:
-                sleep_for_day()
+            except GeminiDayLimit as e:
+                raise e
+            except NewsApiDayLimit as e:
+                raise e
             except Exception:
                 tries+=1
-        print(players_with_stored_articles)
-        players_with_stored_articles+=1
+        print(progress.players_with_stored_articles)
+        progress.players_with_stored_articles+=1
 
 async def store_team_articles():
-    global teams_with_stored_articles
+    global progress
     teams = await Team.find().to_list()
     team_names = [team.name for team in teams]
-    # team_names = [] 
-    while(teams_with_stored_articles < len(team_names)):
+    while(progress.teams_with_stored_articles < len(team_names)):
         max_retries = 5
         tries = 0
         success = False
         while((not success) and tries<max_retries):
             
-            team_name = team_names[teams_with_stored_articles]
+            team_name = team_names[progress.teams_with_stored_articles]
             try:    
-                articles = await articleGetter.get_articles_team(teamName=team_name,resultsCount=5)
+                articles = await articleGetter.get_articles_team(teamName=team_name,resultsCount=5,beg=progress.last_complete_fetch_date)
                 await Article.insert_many(articles)
                 success = True
-            except GeminiDayLimit:
-                sleep_for_day()
-            except NewsApiDayLimit:
-                sleep_for_day()
+            except GeminiDayLimit as e:
+                raise e
+            except NewsApiDayLimit as e:
+                raise e
             except Exception:
                 tries+=1   
-        print(teams_with_stored_articles)
-        teams_with_stored_articles+=1
+        print(progress.teams_with_stored_articles)
+        progress.teams_with_stored_articles+=1
 
 async def store_mlb_articles():
-    global mlb_article_stored
+    global progress
     max_retries = 5
     tries = 0  
     success = False  
     while((not success) and tries<max_retries):  
         try:
-            articles = await articleGetter.get_articles_mlb(resultsCount=15) 
+            articles = await articleGetter.get_articles_mlb(resultsCount=15,beg=progress.last_complete_fetch_date) 
             await Article.insert_many(articles)   
             success = True
            
-        except GeminiDayLimit:
-            sleep_for_day()
-        except NewsApiDayLimit:
-            sleep_for_day()
+        except GeminiDayLimit as e:
+            raise e
+        except NewsApiDayLimit as e:
+            raise e
         except Exception:
             tries+=1    
     
-        mlb_article_stored+=1
+        progress.mlb_article_stored+=1
     print("done")
 
+async def intialize_progess():
+    global progress
+    progress = await Progress.find_one({})
+    if(progress.state == State.start):
+        progress.players_with_article_stored = 0
+        progress.teams_with_article_stored = 0
+        progress.mlb_articles_stored = 0
+        progress.last_execution_start_date = datetime.now(timezone.utc)
+        progress.state = State.working
+
+async def save_progress():
+    global progress
+    progress.last_executed_date = datetime.now(timezone.utc)
+    await progress.save()
 async def  main_func():
     await init_db()
-    # await store_player_articles()
-    # await store_team_articles()
-    # await store_mlb_articles()
-    await test()
+    await intialize_progess()
+    global articleGetter
+    articleGetter = NewsApiArticleGetter()
+    try:
+        await store_player_articles()
+        await store_team_articles()
+        await store_mlb_articles()
+        progress.last_complete_fetch_date = progress.last_execution_start_date
+        progress.state = State.completed
+    except GeminiDayLimit:
+        pass
+    except NewsApiDayLimit:
+        pass
     await articleGetter.close()
     del articleGetter
+    save_progress()
+    # await test()
 
-players_with_stored_articles = 0
-teams_with_stored_articles = 0
-mlb_article_stored  = 0
-articleGetter = NewsApiArticleGetter()
-asyncio.run(main_func())
+
+# players_with_stored_articles = 0
+# teams_with_stored_articles = 0
+# progress.mlb_article_stored  = 0
+# articleGetter = NewsApiArticleGetter()
 # last_run_date = datetime() # some date in date time format 
-
+asyncio.run(main_func())
