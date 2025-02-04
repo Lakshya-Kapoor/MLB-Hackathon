@@ -11,6 +11,7 @@ class ReactionTypes(Enum):
     upVotes = "upVotes"
     downVotes = "downVotes"
 
+
 class Article(Document):
     
     title:str|None
@@ -23,5 +24,6 @@ class Article(Document):
     publishedDate:datetime|None
     uploadDate:datetime = Field(default_factory=lambda:datetime.now(timezone.utc))
     reactions:Reactions = Field(default_factory=lambda: Reactions())
+
     class Settings:
         name = "articles"

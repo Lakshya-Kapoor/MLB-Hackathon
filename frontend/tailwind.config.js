@@ -14,7 +14,7 @@ export default {
         light3: "rgb(227, 227, 227)",
         light4: "rgb(219, 219, 219)",
         light5: "rgb(212, 212, 212)",
-        red1: "rgb(190, 5, 60)",
+        red1: "rgb(170, 30, 60)",
         red2: "rgb(183, 5, 60)",
         red3: "rgb(170, 5, 60)",
         red4: "rgb(160, 5, 60)",
@@ -22,6 +22,7 @@ export default {
       },
       fontFamily: {
         secular: ["Secular", "sans-serif"],
+        anton: ["Anton", "sans-serif"],
       },
     },
   },

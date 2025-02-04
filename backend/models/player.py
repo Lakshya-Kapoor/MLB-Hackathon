@@ -3,6 +3,7 @@ from beanie import Document
 class Player(Document):
     name: str
     player_id: int
+    team_id: int
     age: int | None
     height: str | None
     weight: int | None
