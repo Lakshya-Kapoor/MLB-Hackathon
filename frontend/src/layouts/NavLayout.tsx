@@ -9,7 +9,7 @@ export default function NavLayout() {
 
   return (
     <SearchContext.Provider value={{ search, setSearch }}>
-      <div className="min-h-screen bg-dark5 pt-20 flex flex-col items-center">
+      <div className="min-h-screen bg-dark5 py-20 flex flex-col items-center">
         <NavBar />
         <div className="xl:w-[1200px] w-full pt-10 xl:px-0 px-[30px]">
           {search ? <Search /> : <Outlet />}

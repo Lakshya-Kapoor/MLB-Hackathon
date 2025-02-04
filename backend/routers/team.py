@@ -22,11 +22,16 @@ async def get_teams(name: str | None = None, id: int | None = None, limit: int =
     teams = await Team.find(query).to_list()
     return teams[:limit]    
 
-# Date format: YYYY-MM-DD
+@router.get("/follows")
+async def get_followed_teams(user: dict = Depends(get_current_user)):
+    user_res = await User.find_one(User.username == user['username'])
+    return user_res.team_names
+
 @router.get("/{team_id}/roster")
 async def get_team_roster(team_id: int):
     players = await Player.find({"team_id": team_id}).to_list()
     return players
+
 
 @router.get("/{team_id}/stats")
 async def get_team_stats(team_id: int):

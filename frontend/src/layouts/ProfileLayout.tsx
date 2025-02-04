@@ -33,7 +33,6 @@ export default function ProfileLayout({ type }: { type: "players" | "teams" }) {
 
       if (!ignore) {
         setData(responses[0][0]);
-        console.log(responses[1]);
         setFollowing(responses[1].following);
       }
     }

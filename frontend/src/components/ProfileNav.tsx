@@ -11,7 +11,6 @@ export default function ProfileNav() {
         <SubNavButton name="Home" />
         <SubNavButton name="Stats" />
         <SubNavButton name="Articles" />
-        <SubNavButton name="Polls" />
       </nav>
     );
   }
@@ -22,7 +21,6 @@ export default function ProfileNav() {
       <SubNavButton name="Stats" />
       <SubNavButton name="Schedule" />
       <SubNavButton name="Articles" />
-      <SubNavButton name="Polls" />
     </nav>
   );
 }

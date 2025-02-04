@@ -78,3 +78,20 @@ export interface ArticleData {
   publishedDate: Date;
   uploadDate: Date;
 }
+
+export interface Game {
+  gamePk: number;
+  gameType: string;
+  gameDate: string;
+  statusCode: string;
+  statusDetails: string;
+  homeTeam: string;
+  homeTeamId: number;
+  awayTeam: string;
+  awayTeamId: number;
+  gameTypeDetails: string;
+  awayTeamScore?: number;
+  homeTeamScore?: number;
+  tied?: boolean;
+  winner?: "home" | "away";
+}
