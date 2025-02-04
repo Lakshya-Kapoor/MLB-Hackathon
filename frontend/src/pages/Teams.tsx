@@ -92,13 +92,16 @@ export default function Teams() {
 
       if (!ignore) {
         setData(responses[0]);
-        setFollowing(responses[1]);
+        if (!("detail" in responses[1])) {
+          setFollowing(responses[1]);
+        }
       }
     }
     getTeams();
 
     return () => {
       ignore = true;
+      setFollowing([]);
     };
   }, [userToken]);
 

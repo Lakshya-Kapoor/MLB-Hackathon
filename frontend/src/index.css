@@ -27,6 +27,16 @@
   animation: fadeIn 0.3s ease-out forwards;
 }
 
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
 /* Custom markdown styles */
 .markdown-content {
   @apply text-light3 leading-relaxed;
