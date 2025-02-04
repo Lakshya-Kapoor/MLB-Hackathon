@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from setUpMlb import statsBaseUrl,defaultParams,currentSeason
+from utils.setUpMlb import statsBaseUrl,defaultParams,currentSeason
 from utils.request import get_request
 from enum import Enum
 import asyncio
