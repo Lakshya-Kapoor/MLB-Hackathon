@@ -53,6 +53,7 @@ async def get_standings(season: int = 2025):
     """
     query = {'season':season}
     query.update(defaultParams)
+
     al_league_data, al_division_data, nl_league_data, nl_division_data = await asyncio.gather(
         get_request(statsBaseUrl, f'/standings/byLeague', {**query, 'leagueId':AmericanLeagueId}), 
         get_request(statsBaseUrl, f'/standings/byDivision',{**query, 'leagueId':AmericanLeagueId}),

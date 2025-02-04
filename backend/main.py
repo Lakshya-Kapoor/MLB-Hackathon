@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from routers import schedule, team, player, auth, standing, article
 from utils import database, middleware
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
@@ -18,10 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.get("/protected")
-async def hello(user: dict = Depends(middleware.get_current_user)):
-    return {"message": "Hello World", "user": user}
 
 app.include_router(team.router, prefix="/teams")
 app.include_router(auth.router, prefix="/auth")

@@ -39,7 +39,7 @@ async def getPlayerStastsById(player_id: int):
     path = f"people/{player_id}/stats"
     query = {'stats': 'season', 'season': currentSeason, 'group': ['hitting', 'pitching', 'fielding']}
     query.update(defaultParams)
-    data = await get_request(statsBaseUrl, path, query)
+    data = await getMlbData(statsBaseUrl+ path, query)
     playerStatsAll = {statData['group']['displayName']: statData['splits'][0]['stat'] for statData in data['stats']}
     playerStats = {}
     for statType, stats in playerStatsAll.items():
@@ -61,7 +61,7 @@ async def getPlayerInfoById(playerId:int):
     path = f"people/{playerId}"
     query = {}
     query.update(defaultParams)
-    data = await get_request(statsBaseUrl, path, query)
+    data = await getMlbData(statsBaseUrl+ path, query)
     playerInfo = {infoType: info for infoType, info in data['people'][0].items() if infoType in focusedPlayerInfo}
     playerInfo['primaryPosition'] = playerInfo['primaryPosition']['name'] + '-' + playerInfo['primaryPosition']['type']
     playerInfo['batSide'] = playerInfo['batSide']['description']
@@ -78,7 +78,7 @@ async def getPlayerIdByName(playerName:str):
     path = 'people/search'
     query = {'seasons': [currentSeason], 'names': [playerName]}
     query.update(defaultParams)
-    data = await get_request(statsBaseUrl, path, query)
+    data = await getMlbData(statsBaseUrl+ path, query)
     playerIds = {player['id']: player['fullName'] for player in data['people']}
     return playerIds
 
@@ -92,7 +92,7 @@ async def getPlayerOverviewById(playerId:int):
     path = f"people/{playerId}/stats"
     query = {'stats': 'season', 'season': currentSeason}
     query.update(defaultParams)
-    data = await get_request(statsBaseUrl, path, query)
+    data = await getMlbData(statsBaseUrl+ path, query)
     team = {infoType: info for infoType, info in data['stats'][0]['splits'][0]['team'].items() if infoType in {'name', 'id'}}
     league = {infoType: info for infoType, info in data['stats'][0]['splits'][0]['league'].items() if infoType in {'name', 'id'}}
     player = {infoType: info for infoType, info in data['stats'][0]['splits'][0]['player'].items() if infoType in {'fullName', 'id'}}
