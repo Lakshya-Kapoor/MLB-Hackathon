@@ -6,7 +6,7 @@ import { Game } from "../utils/types";
 
 export default function ProfileSchedule() {
   const { data } = useContext(ProfileContext)!;
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<Game[] | null>(null);
 
   useEffect(() => {
     const url = `http://localhost:8000/schedule?season=2024&teamId=${data?.team_id}&gameState=past`;
@@ -39,8 +39,8 @@ export default function ProfileSchedule() {
     });
   };
 
-  if (games.length === 0) {
-    return null;
+  if (!games) {
+    return <div className="text-white">Loading...</div>;
   }
 
   return (

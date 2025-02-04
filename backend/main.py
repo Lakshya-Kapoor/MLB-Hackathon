@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from routers import schedule, team, player, auth, standing, article
-from utils import database, middleware
+from utils import database
 
 
 @asynccontextmanager

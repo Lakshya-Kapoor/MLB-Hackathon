@@ -122,6 +122,8 @@ export default function Teams() {
     }[league];
   }
 
+  if (!data) return <div className="text-white">Loading...</div>;
+
   return (
     <div>
       {/* Pill-shaped tabs with gradient background */}
@@ -138,39 +140,37 @@ export default function Teams() {
         />
       </div>
 
-      {data && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {getLeagueDivisions(activeLeague).map(([division, teams]) => (
-            <div
-              key={division}
-              className="flex flex-col rounded-xl border border-dark1"
-            >
-              <h2 className="text-xl font-bold text-light1 text-center bg-dark3 p-2 rounded-t-xl">
-                {division.split("_")[1]}
-              </h2>
-              <div className="flex flex-col p-4 gap-3">
-                {teams.map((team) => (
-                  <div
-                    key={team.teamId}
-                    className="flex items-center gap-4 rounded-lg hover:bg-dark1/30 p-3 transition-colors duration-200"
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {getLeagueDivisions(activeLeague).map(([division, teams]) => (
+          <div
+            key={division}
+            className="flex flex-col rounded-xl border border-dark1"
+          >
+            <h2 className="text-xl font-bold text-light1 text-center bg-dark3 p-2 rounded-t-xl">
+              {division.split("_")[1]}
+            </h2>
+            <div className="flex flex-col p-4 gap-3">
+              {teams.map((team) => (
+                <div
+                  key={team.teamId}
+                  className="flex items-center gap-4 rounded-lg hover:bg-dark1/30 p-3 transition-colors duration-200"
+                >
+                  <img
+                    src={`https://www.mlbstatic.com/team-logos/${team.teamId}.svg`}
+                    className="w-8 h-8 object-contain"
+                  />
+                  <Link
+                    to={`/teams/${team.teamId}`}
+                    className="text-light1 font-medium"
                   >
-                    <img
-                      src={`https://www.mlbstatic.com/team-logos/${team.teamId}.svg`}
-                      className="w-8 h-8 object-contain"
-                    />
-                    <Link
-                      to={`/teams/${team.teamId}`}
-                      className="text-light1 font-medium"
-                    >
-                      {team.teamName}
-                    </Link>
-                  </div>
-                ))}
-              </div>
+                    {team.teamName}
+                  </Link>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
 
       {following.length !== 0 && (
         <div className="mt-20 flex flex-col gap-4">

@@ -24,7 +24,7 @@ async def get_reactions(articleId:str):
 class SortBy(Enum):
     publishedDate = "publishedDate"
     upVotes = "upVotes"
-@router.get("/userFuzzySearch")
+@router.get("/search")
 async def get_article_ids_from_query(query:str,limit:int=10,sortBy:SortBy=SortBy.publishedDate):
     pipeline_title = [
         {
@@ -43,7 +43,7 @@ async def get_article_ids_from_query(query:str,limit:int=10,sortBy:SortBy=SortBy
         },
         {
             "$project":{
-                "title":1,"tags":1,"publishedDate":1,"reactions":1
+                "title":1,"tags":1,"publishedDate":1,"reactions":1, "catchyPhrase":1, "uploadDate":1
             }
         }
     ]
@@ -64,7 +64,7 @@ async def get_article_ids_from_query(query:str,limit:int=10,sortBy:SortBy=SortBy
         },
         {
             "$project":{
-                "title":1,"tags":1,"publishedDate":1,"reactions":1
+                "title":1,"tags":1,"publishedDate":1,"reactions":1, "catchyPhrase":1, "uploadDate":1
             }
         }
     ]
@@ -84,20 +84,25 @@ async def get_article_ids_from_query(query:str,limit:int=10,sortBy:SortBy=SortBy
     tag_match_articles  = sorted(tag_match_articles,key =sort_key,reverse=True)
     return {"tag_match_articles":tag_match_articles,"title_match_articles":title_match_articles}
 
-@router.get("/following/team")
-async def get_following_team_articles(teamName:str,sortBy:SortBy=SortBy.publishedDate):
+# Route for getting team / player articles
+@router.get("/search/tags")
+async def get_following_team_articles(name:str,sortBy:SortBy=SortBy.publishedDate):
+    print(name)
     if(sortBy == SortBy.publishedDate):
-        return await Article.find({"tags":teamName}).sort(-Article.publishedDate).to_list()
+        return await Article.find({"tags":name}).sort(-Article.publishedDate).to_list()
     else:
-        return await Article.find({"tags":teamName}).sort(-Article.reactions.upVotes).to_list()
-@router.get("/following/player")
-async def get_following_player_articles(playerName:str,sortBy:SortBy=SortBy.publishedDate):
-    if(sortBy == SortBy.publishedDate):
-        return await Article.find({"tags":playerName}).sort(-Article.publishedDate).to_list()
-    else:
-        return await Article.find({"tags":playerName}).sort(-Article.reactions.upVotes).to_list()
-    
+        return await Article.find({"tags":name}).sort(-Article.reactions.upVotes).to_list()
 
+class FeedType(Enum):
+    popular = "popular"
+    recent = "recent"
+
+@router.get("/feed")
+async def get_feed(type: FeedType, limit: int = 10):
+    if type == FeedType.popular:
+        return (await Article.find().sort(-Article.reactions.upVotes).to_list())[:limit]
+    else:
+        return (await Article.find().sort(-Article.publishedDate).to_list())[:limit]
 
 
 
@@ -143,3 +148,8 @@ async def get_following_player_articles(playerName:str,sortBy:SortBy=SortBy.publ
     #     }
     # ] 
 
+
+@router.get("/{article_id}")
+async def get_article(article_id:str):
+    article_id = PydanticObjectId(article_id)
+    return await Article.get(article_id)

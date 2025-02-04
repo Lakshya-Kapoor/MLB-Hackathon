@@ -1,35 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, BarChart, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
-
-interface TeamData {
-  divisionRank: string;
-  leagueRank: string;
-  gamesPlayed: number;
-  runsAllowed: number;
-  runsScored: number;
-  clinched: boolean;
-  wins: number;
-  losses: number;
-  runDifferential: number;
-  teamId: number;
-  teamName: string;
-  streakCode: string;
-}
-
-interface RankingsType {
-  AL: TeamData[];
-  AL_East: TeamData[];
-  AL_West: TeamData[];
-  AL_Central: TeamData[];
-  NL: TeamData[];
-  NL_East: TeamData[];
-  NL_West: TeamData[];
-  NL_Central: TeamData[];
-}
+import { RankingsType, StandingsData } from "../utils/types";
 
 export default function Standings() {
-  const [data, setData] = useState<RankingsType>();
+  const [data, setData] = useState<RankingsType | null>(null);
   const [selectedSeason, setSelectedSeason] = useState("2024");
   const [selectedDivision, setSelectedDivision] = useState("AL");
 
@@ -53,7 +28,7 @@ export default function Standings() {
     };
   }, [selectedSeason]);
 
-  const getTeamData = (division: string) => {
+  const StandingsData = (division: string) => {
     return {
       "AL East": data!.AL_East,
       "AL Central": data!.AL_Central,
@@ -65,6 +40,10 @@ export default function Standings() {
       NL: data!.NL,
     }[division];
   };
+
+  if (!data) {
+    return <div className="text-white">Loading...</div>;
+  }
 
   return (
     <div className="">
@@ -78,7 +57,7 @@ export default function Standings() {
           <SeasonSelector
             selectedSeason={selectedSeason}
             onSeasonChange={(season: string) => {
-              setData(undefined);
+              setData(null);
               setSelectedSeason(season);
             }}
           />
@@ -89,14 +68,12 @@ export default function Standings() {
         />
       </div>
 
-      {data && (
-        <div className="animate-fadeIn">
-          <StandingsTable
-            title={selectedDivision}
-            teams={getTeamData(selectedDivision)!}
-          />
-        </div>
-      )}
+      <div className="animate-fadeIn">
+        <StandingsTable
+          title={selectedDivision}
+          teams={StandingsData(selectedDivision)!}
+        />
+      </div>
     </div>
   );
 }
@@ -138,12 +115,12 @@ function DivisionSelector({
   );
 }
 
-export function StandingsTable({
+function StandingsTable({
   title,
   teams,
 }: {
   title: string;
-  teams: TeamData[];
+  teams: StandingsData[];
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -245,7 +222,13 @@ function SeasonSelector({
   );
 }
 
-const TeamRow = ({ team, rankType }: { team: TeamData; rankType: number }) => {
+const TeamRow = ({
+  team,
+  rankType,
+}: {
+  team: StandingsData;
+  rankType: number;
+}) => {
   const calculateWinningPercentage = (wins: number, losses: number) => {
     const total = wins + losses;
     return total > 0 ? (wins / total).toFixed(3).substring(1) : ".000";

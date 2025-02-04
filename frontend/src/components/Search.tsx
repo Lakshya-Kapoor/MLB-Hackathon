@@ -2,6 +2,7 @@ import { ChangeEvent, useState } from "react";
 import SearchInput from "./SearchInput";
 import TeamResults from "./TeamResults";
 import PlayerResults from "./PlayerResults";
+import ArticleSlider from "./ArticleSlider";
 
 export default function Search() {
   const [text, setText] = useState("");
@@ -15,13 +16,18 @@ export default function Search() {
     const urls = [
       `http://localhost:8000/teams?name=${text}&limit=5`,
       `http://localhost:8000/players?name=${text}&limit=5`,
+      `http://localhost:8000/articles/search?query=${text}`,
     ];
 
     const requests = urls.map(async (url) =>
       fetch(url).then((res) => res.json())
     );
     const responses = await Promise.all(requests);
-    setResults({ teams: responses[0], players: responses[1], articles: [] });
+    setResults({
+      teams: responses[0],
+      players: responses[1],
+      articles: responses[2]["title_match_articles"],
+    });
   }
 
   async function searchChange(e: ChangeEvent<HTMLInputElement>) {
@@ -47,16 +53,19 @@ export default function Search() {
           results.articles.length > 0 && (
             <span className="col-span-2 bg-dark1 h-[2px] my-5" />
           )}
-        {results.articles.length > 0 && <ArticleResults />}
+        {results.articles.length > 0 && (
+          <ArticleResults articles={results.articles} />
+        )}
       </div>
     </div>
   );
 }
 
-function ArticleResults() {
+function ArticleResults({ articles }) {
   return (
     <div className="col-span-2">
-      <h3 className="text-2xl text-light3 font-semibold">Articles</h3>
+      <h3 className="text-2xl text-light5 font-semibold mb-5">Articles</h3>
+      <ArticleSlider articles={articles} />
     </div>
   );
 }

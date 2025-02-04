@@ -26,7 +26,7 @@ function TeamSearchResult({ team }: { team: any }) {
       {/* <div className="bg-light3 p-2 rounded-full"> */}
       <img src={team.logo} alt={team.name} className="h-7 w-7" />
       {/* </div> */}
-      <p className="text-light1 text-lg">{team.name}</p>
+      <p className="text-light1 font-semibold text-lg">{team.name}</p>
     </Link>
   );
 }

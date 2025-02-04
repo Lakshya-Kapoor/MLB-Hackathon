@@ -11,7 +11,9 @@ export default function NavBar() {
     <header className="select-none border-b-[1px] border-dark1 bg-dark4 fixed z-10 top-0 w-full h-20 xl:px-0 px-[30px] flex justify-center text-light1">
       <div className="xl:w-[1200px] w-full flex items-center justify-between">
         <div className="flex items-center gap-20 text-xl font-normal text-opacity-80">
-          <h1>MLB</h1>
+          <Link to={"/"} className="text-4xl font-secular text-blue-400">
+            MLBee
+          </Link>
           <div className="flex gap-8 text-lg text-light5/80">
             <NavLink setSearch={setSearch} to="/standings">
               Standings

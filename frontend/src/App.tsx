@@ -3,17 +3,18 @@ import AuthLayout from "./layouts/AuthLayout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NavLayout from "./layouts/NavLayout";
-import Articles from "./pages/Articles";
 import { Stats } from "./pages/Stats";
 import { Roster } from "./pages/Roster";
 import ProfileLayout from "./layouts/ProfileLayout";
 import ProfileHome from "./pages/ProfileHome";
 import ProfileArticles from "./pages/ProfileArticles";
-import ProfilePolls from "./pages/ProfilePolls";
 import ProfileSchedule from "./pages/ProfileSchedule";
 import AuthProvider from "./contexts/AuthProvider";
 import Standings from "./pages/Standings";
 import Teams from "./pages/Teams";
+import ArticlePage from "./pages/ArticlePage";
+import Articles from "./pages/Articles";
+import Home from "./pages/Home";
 
 export default function App() {
   return (
@@ -25,16 +26,17 @@ export default function App() {
             <Route path="login" element={<Login />} />
           </Route>
           <Route path="/" element={<NavLayout />}>
-            <Route path="articles" element={<Articles />} />
+            <Route index element={<Home />} />
+            <Route path="articles/:id/" element={<ArticlePage />} />
             <Route path="standings" element={<Standings />} />
             <Route path="teams" element={<Teams />} />
+            <Route path="articles" element={<Articles />} />
             <Route path="teams/:id/" element={<ProfileLayout type="teams" />}>
               <Route index element={<ProfileHome />} />
               <Route path="roster" element={<Roster />} />
               <Route path="stats" element={<Stats />} />
               <Route path="schedule" element={<ProfileSchedule />} />
               <Route path="articles" element={<ProfileArticles />} />
-              <Route path="polls" element={<ProfilePolls />} />
             </Route>
             <Route
               path="players/:id"
@@ -43,7 +45,6 @@ export default function App() {
               <Route index element={<ProfileHome />} />
               <Route path="stats" element={<Stats />} />
               <Route path="articles" element={<ProfileArticles />} />
-              <Route path="polls" element={<ProfilePolls />} />
             </Route>
           </Route>
         </Routes>

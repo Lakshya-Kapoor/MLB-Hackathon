@@ -68,6 +68,7 @@ export interface FieldingStats {
 }
 
 export interface ArticleData {
+  _id: string;
   title: string;
   catchyPhrase: string;
   description: string;
@@ -77,6 +78,10 @@ export interface ArticleData {
   url: string;
   publishedDate: Date;
   uploadDate: Date;
+  reactions: {
+    upVotes: number;
+    downVotes: number;
+  };
 }
 
 export interface Game {
@@ -94,4 +99,30 @@ export interface Game {
   homeTeamScore?: number;
   tied?: boolean;
   winner?: "home" | "away";
+}
+
+export interface StandingsData {
+  divisionRank: string;
+  leagueRank: string;
+  gamesPlayed: number;
+  runsAllowed: number;
+  runsScored: number;
+  clinched: boolean;
+  wins: number;
+  losses: number;
+  runDifferential: number;
+  teamId: number;
+  teamName: string;
+  streakCode: string;
+}
+
+export interface RankingsType {
+  AL: StandingsData[];
+  AL_East: StandingsData[];
+  AL_West: StandingsData[];
+  AL_Central: StandingsData[];
+  NL: StandingsData[];
+  NL_East: StandingsData[];
+  NL_West: StandingsData[];
+  NL_Central: StandingsData[];
 }
