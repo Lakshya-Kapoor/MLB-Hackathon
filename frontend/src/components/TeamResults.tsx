@@ -20,7 +20,7 @@ function TeamSearchResult({ team }: { team: any }) {
   return (
     <Link
       to={url}
-      onClick={() => setSearch(!search)}
+      onClick={() => setSearch(false)}
       className="flex gap-4 items-center hover:bg-dark1 hover:bg-opacity-50 hover:cursor-pointer p-3"
     >
       {/* <div className="bg-light3 p-2 rounded-full"> */}
