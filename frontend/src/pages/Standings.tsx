@@ -41,13 +41,12 @@ export default function Standings() {
     }[division];
   };
 
-  if (!data) {
-    return <div className="text-white">Loading...</div>;
-  }
+  // if (!data) {
+  //   return <div className="text-white">Loading...</div>;
+  // }
 
   return (
     <div className="">
-      {/* bg-gradient-to-tr from-dark1 via-dark4 to-dark1 */}
       <div className="mb-8 bg-dark1/80 rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -67,13 +66,16 @@ export default function Standings() {
           onDivisionChange={setSelectedDivision}
         />
       </div>
-
-      <div className="animate-fadeIn">
-        <StandingsTable
-          title={selectedDivision}
-          teams={StandingsData(selectedDivision)!}
-        />
-      </div>
+      {data ? (
+        <div className="animate-fadeIn">
+          <StandingsTable
+            title={selectedDivision}
+            teams={StandingsData(selectedDivision)!}
+          />
+        </div>
+      ) : (
+        <div className="text-white">Loading...</div>
+      )}
     </div>
   );
 }
