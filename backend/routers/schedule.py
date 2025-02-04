@@ -91,14 +91,14 @@ def formatScheduleData(data,gameTypes) -> list:
     return schedule
 
 @router.get('/')
-async def getSchedule(teamId:int|None=None,gameState:GameState|None = None) -> list:
+async def getSchedule(teamId:int|None=None,gameState:GameState|None = None, season: int = 2025) -> list:
     
     """
     endpoint returs the schedule optional parameters are teamID and GameState:live,future,past of current season
     """
 
     path = 'schedule'
-    query = {'season':currentSeason,'scheduleType':'game schedule'}
+    query = {'season':season,'scheduleType':'game schedule'}
    
     if(teamId != None):
         query.update({'teamId':teamId})

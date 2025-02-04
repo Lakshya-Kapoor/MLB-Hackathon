@@ -4,9 +4,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NavLayout from "./layouts/NavLayout";
 import Articles from "./pages/Articles";
-import Polls from "./pages/Polls";
-import Teams from "./pages/Teams";
-import Players from "./pages/Players";
 import { Stats } from "./pages/Stats";
 import { Roster } from "./pages/Roster";
 import ProfileLayout from "./layouts/ProfileLayout";
@@ -15,6 +12,8 @@ import ProfileArticles from "./pages/ProfileArticles";
 import ProfilePolls from "./pages/ProfilePolls";
 import ProfileSchedule from "./pages/ProfileSchedule";
 import AuthProvider from "./contexts/AuthProvider";
+import Standings from "./pages/Standings";
+import Teams from "./pages/Teams";
 
 export default function App() {
   return (
@@ -27,9 +26,8 @@ export default function App() {
           </Route>
           <Route path="/" element={<NavLayout />}>
             <Route path="articles" element={<Articles />} />
-            <Route path="polls" element={<Polls />} />
+            <Route path="standings" element={<Standings />} />
             <Route path="teams" element={<Teams />} />
-            <Route path="players" element={<Players />} />
             <Route path="teams/:id/" element={<ProfileLayout type="teams" />}>
               <Route index element={<ProfileHome />} />
               <Route path="roster" element={<Roster />} />

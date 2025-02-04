@@ -58,6 +58,8 @@ async def get_standings(season: int = 2025):
         get_request(statsBaseUrl, f'/standings/byDivision',{**query, 'leagueId':AmericanLeagueId}),
         get_request(statsBaseUrl, f'/standings/byLeague', {**query, 'leagueId':NationalLeagueId}), 
         get_request(statsBaseUrl, f'/standings/byDivision',{**query, 'leagueId':NationalLeagueId}))
+
+    # return al_division_data
     
     league_res = {**formatStandingDataLeague(al_league_data), **formatStandingDataLeague(nl_league_data)}
     division_res = {**formatStandingDataDivisons(al_division_data), **formatStandingDataDivisons(nl_division_data)}

@@ -11,12 +11,13 @@ import {
 } from "lucide-react";
 import {
   FieldingStats,
+  Game,
   HittingStats,
   PitchingStats,
   PlayerData,
   TeamData,
 } from "../utils/types";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 export default function ProfileHome() {
   const { data } = useContext(ProfileContext)!;
@@ -26,20 +27,30 @@ export default function ProfileHome() {
     pitching: PitchingStats;
     fielding: FieldingStats;
   } | null>(null);
+  const [games, setGames] = useState<Game[]>([]);
 
   const { type } = useContext(ProfileContext)!;
 
   useEffect(() => {
-    const url = `http://localhost:8000/${type}/${id}/stats`;
+    const urls = [`http://localhost:8000/${type}/${id}/stats`];
+
+    if (type === "teams") {
+      urls.push(`http://localhost:8000/schedule?teamId=${id}&gameState=future`);
+    }
 
     let ignore = false;
 
     async function getStats() {
-      const res = await fetch(url);
-      const data = await res.json();
+      const requests = urls.map(async (url) =>
+        fetch(url).then((res) => res.json())
+      );
+      const responses = await Promise.all(requests);
 
       if (!ignore) {
-        setStats(data);
+        setStats(responses[0]);
+        if (type === "teams") {
+          setGames(responses[1].slice(0, 5));
+        }
       }
     }
 
@@ -66,14 +77,87 @@ export default function ProfileHome() {
         <TeamInfo team={data!} />
         <hr className="border-light1/30" />
         <Stats stats={stats} />
+        <hr className="border-light1/30" />
+        <Schedule games={games} />
       </div>
     );
   }
 }
 
+function Schedule({ games }: { games: Game[] }) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold text-light1">Upcoming Matches</h2>
+      <div className="overflow-hidden rounded-lg border border-dark1">
+        <table className="min-w-full table-auto">
+          <thead className="bg-light5/10">
+            <tr>
+              <th className="p-3 text-left text-sm font-semibold text-light5">
+                HOME TEAM
+              </th>
+              <th className="p-3 text-left text-sm font-semibold text-light5">
+                AWAY TEAM
+              </th>
+              <th className="p-3 text-left text-sm font-semibold text-light5">
+                DATE
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-light5/35">
+            {games.map((game) => (
+              <tr
+                key={game.gamePk}
+                className="text-sm hover:bg-dark1/40 transition-colors duration-200"
+              >
+                <td className="px-3 py-4 text-light1 font-medium">
+                  <Link
+                    to={`/teams/${game.homeTeamId}`}
+                    className="flex items-center gap-2"
+                  >
+                    <img
+                      className="w-5 h-5"
+                      src={`https://www.mlbstatic.com/team-logos/${game.homeTeamId}.svg`}
+                    />
+                    {game.homeTeam}
+                  </Link>
+                </td>
+                <td className="px-3 py-4 text-light1 font-medium">
+                  <Link
+                    to={`/teams/${game.awayTeamId}`}
+                    className="flex items-center gap-2"
+                  >
+                    <img
+                      className="w-5 h-5"
+                      src={`https://www.mlbstatic.com/team-logos/${game.awayTeamId}.svg`}
+                    />
+                    {game.awayTeam}
+                  </Link>
+                </td>
+                <td className="px-3 py-4 text-sm text-light3">
+                  {formatDate(game.gameDate)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function PersonalInfo({ player }: { player: PlayerData }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <h2 className="text-lg font-semibold text-light1">
         Personal Information
       </h2>
@@ -103,7 +187,7 @@ function PersonalInfo({ player }: { player: PlayerData }) {
 }
 function TeamInfo({ team }: { team: TeamData }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <h2 className="text-lg font-semibold text-light1">Team Information</h2>
       <div className="grid grid-cols-2 gap-4">
         <div>
